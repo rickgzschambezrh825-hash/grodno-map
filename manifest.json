@@ -1,0 +1,16 @@
+{
+  "name": "ГИС Поиск Гродно 1941/1944",
+  "short_name": "ГИС Гродно",
+  "description": "Геоинформационная система поиска и увековечения памяти воинов ВОВ в Гродненском районе",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0d0f11",
+  "theme_color": "#14171a",
+  "icons": [
+    {
+      "src": "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

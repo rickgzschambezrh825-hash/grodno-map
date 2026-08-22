@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Геоинформационная система Гродненской поисковой экспедиции: карты боев 1941 и 1944 годов, архивные документы ЦАМО, геолокации неучтенных захоронений и экспорт GPX/KML">
+  <title>ГИС «ПОИСК-ГРОДНО 1941/1944» | Военно-картографический геопортал</title>
+
+  <!-- Google Fonts: Inter & Roboto Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Application CSS -->
+  <link rel="stylesheet" href="index.css">
+
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="manifest.json">
+</head>
+<body class="tactical-theme">
+  <!-- Top Navigation & Header Bar -->
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="brand-logo">
+        <i class="fa-solid fa-compass-drafting"></i>
+      </div>
+      <div class="brand-title">
+        <h1>ГИС «ПОИСК-ГРОДНО 1941/1944»</h1>
+        <span class="brand-subtitle">Геоинформационная система увековечения памяти воинов ВОВ</span>
+      </div>
+    </div>
+
+    <!-- Quick Metrics Badges -->
+    <div class="header-metrics">
+      <div class="metric-badge memorial-badge" title="Учтенные воинские захоронения">
+        <i class="fa-solid fa-monument"></i>
+        <span id="statMemorialsCount">0</span> Мемориалов
+      </div>
+      <div class="metric-badge prospective-badge" title="Перспективные неучтенные точки">
+        <i class="fa-solid fa-crosshairs"></i>
+        <span id="statProspectiveCount">0</span> Поисковых зон
+      </div>
+      <div class="metric-badge user-badge" title="Добавленные полевые точки">
+        <i class="fa-solid fa-location-dot"></i>
+        <span id="statUserCount">0</span> Находок
+      </div>
+    </div>
+
+    <!-- Main Toolbar Actions -->
+    <div class="header-actions">
+      <button id="btnSplitScreen" class="btn btn-tactical" title="Переключить режим сравнения «Тогда и Сейчас»">
+        <i class="fa-solid fa-sliders"></i>
+        <span>Режим «Было - Стало»</span>
+      </button>
+      <button id="btnAddPoint" class="btn btn-success" title="Добавить новую полевую точку">
+        <i class="fa-solid fa-plus"></i>
+        <span>Добавить точку</span>
+      </button>
+      <button id="btnExport" class="btn btn-primary" title="Экспорт / Импорт GPX и KML для навигаторов">
+        <i class="fa-solid fa-file-export"></i>
+        <span>GPX / KML</span>
+      </button>
+      <button id="btnMeasure" class="btn btn-secondary" title="Измерение расстояний и траншей">
+        <i class="fa-solid fa-ruler-combined"></i>
+        <span>Линейка</span>
+      </button>
+      <button id="btnToggleSidebar" class="btn btn-icon" title="Свернуть/Развернуть панель">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace Container -->
+  <div class="app-workspace">
+    <!-- Left Interactive Control Sidebar -->
+    <aside id="sidebar" class="app-sidebar">
+      <!-- Search & Filters -->
+      <div class="sidebar-search">
+        <div class="search-input-wrapper">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="searchInput" placeholder="Поиск по названию, НП, ЦАМО, полку..." autocomplete="off">
+          <button id="btnClearSearch" class="btn-clear-input" style="display:none;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="filter-group">
+          <label><i class="fa-solid fa-calendar-days"></i> Период боев:</label>
+          <div class="filter-pills" id="periodFilter">
+            <button class="pill active" data-period="all">Все периоды</button>
+            <button class="pill" data-period="1941">1941 (Оборона)</button>
+            <button class="pill" data-period="1944">1944 (Багратион)</button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label><i class="fa-solid fa-filter"></i> Категория объектов:</label>
+          <select id="categoryFilter" class="form-select">
+            <option value="all">Все категории объектов</option>
+            <option value="official_memorial">Официальные мемориалы</option>
+            <option value="prospective_burial">Перспективные неучтенки</option>
+            <option value="san_burial">Санзахоронения / Воронки</option>
+            <option value="fortification">ДОТы / Форты / Блиндажи</option>
+            <option value="river_crossing">Переправы / Места боев</option>
+            <option value="field_finding">Полевые находки экспедиции</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="sidebar-tabs">
+        <button class="tab-btn active" data-tab="tabPoints">
+          <i class="fa-solid fa-list-check"></i> Точки (<span id="pointsTabCount">0</span>)
+        </button>
+        <button class="tab-btn" data-tab="tabChronology">
+          <i class="fa-solid fa-book-bookmark"></i> Хронология
+        </button>
+        <button class="tab-btn" data-tab="tabSources">
+          <i class="fa-solid fa-box-archive"></i> Архивы
+        </button>
+        <button class="tab-btn" data-tab="tabLayers">
+          <i class="fa-solid fa-layer-group"></i> Слои карт
+        </button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="tab-content-container">
+        <!-- Tab 1: Points Directory -->
+        <div id="tabPoints" class="tab-pane active">
+          <div id="pointsList" class="points-directory">
+            <!-- Points Cards Rendered Dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab 2: Battle Chronology -->
+        <div id="tabChronology" class="tab-pane">
+          <div id="chronologyList" class="chronology-timeline">
+            <!-- Timeline Rendered Dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab 3: Archival Sources Catalog -->
+        <div id="tabSources" class="tab-pane">
+          <div id="sourcesList" class="sources-directory">
+            <!-- Sources Rendered Dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab 4: Cartographic Layers Control -->
+        <div id="tabLayers" class="tab-pane">
+          <div class="layers-manager">
+            <div class="layer-section">
+              <h4><i class="fa-solid fa-globe"></i> Базовая спутниковая подложка</h4>
+              <div class="layer-option-group" id="baseMapOptions">
+                <!-- Base layers generated dynamically -->
+              </div>
+            </div>
+
+            <div class="layer-section">
+              <h4><i class="fa-solid fa-map"></i> Исторические карты и Аэрофото</h4>
+              <div class="overlay-layers-list" id="overlayLayersOptions">
+                <!-- Overlay layers with opacity sliders -->
+              </div>
+            </div>
+
+            <div class="layer-section">
+              <h4><i class="fa-solid fa-draw-polygon"></i> Векторные рубежи боев</h4>
+              <div class="vector-layers-list">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="chkFrontlines1941" checked>
+                  <span class="color-indicator" style="background:#e74c3c;"></span>
+                  Рубеж обороны 1941 г. (56 сд, 86 погранотряд)
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="chkFrontlines1944" checked>
+                  <span class="color-indicator" style="background:#2ecc71;"></span>
+                  Наступление 1944 г. (31, 50 армии, 2 гв. кавкорпус)
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main GIS Map Area -->
+    <main class="app-map-container">
+      <!-- Leaflet Main Map Canvas -->
+      <div id="map" class="map-view"></div>
+      
+      <!-- Leaflet Secondary Split Map Canvas (Top Split Layer) -->
+      <div id="mapSplit" class="map-view map-split-secondary" style="display:none;"></div>
+
+      <!-- Split-Screen Visual Status Labels -->
+      <div id="splitBadgeLeft" class="split-side-badge split-badge-left" style="display:none;">
+        <i class="fa-solid fa-clock-rotate-left"></i> ИСТОРИЧЕСКАЯ КАРТА / ТАКТИЧЕСКИЙ РУБЕЖ (1941/1944)
+      </div>
+      <div id="splitBadgeRight" class="split-side-badge split-badge-right" style="display:none;">
+        <i class="fa-solid fa-satellite"></i> СОВРЕМЕННЫЙ СПУТНИК ESRI (4K)
+      </div>
+
+      <!-- Split Screen Swipe Divider Handle -->
+      <div id="splitDivider" class="split-divider" style="display:none;">
+        <div class="divider-handle" title="Перетащите влево/вправо для сравнения карт">
+          <i class="fa-solid fa-arrows-left-right"></i>
+        </div>
+      </div>
+
+      <!-- Active Measurement Floating Toolbar -->
+      <div id="measureToolbar" class="floating-panel measure-panel" style="display:none;">
+        <div class="panel-header">
+          <span><i class="fa-solid fa-ruler-combined"></i> Измерение на местности</span>
+          <button id="btnCloseMeasure" class="btn-close-sm"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="panel-body">
+          <div class="measure-value" id="measureResult">Кликните по карте для начала измерения...</div>
+          <button id="btnClearMeasure" class="btn btn-danger-sm">Сбросить</button>
+        </div>
+      </div>
+
+      <!-- Current Coordinates & Scale Bar Overlay -->
+      <div class="map-hud-overlay">
+        <div class="hud-coords" id="hudCoords">
+          <i class="fa-solid fa-location-crosshairs"></i> WGS84: 53.8306° N, 23.6444° E
+        </div>
+        <div class="hud-locate">
+          <button id="btnLocateMe" class="btn btn-icon btn-dark" title="Мое местоположение на GPS">
+            <i class="fa-solid fa-crosshairs"></i>
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Archival Dossier Modal -->
+  <div id="dossierModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content tactical-card">
+        <div class="modal-header">
+          <div class="dossier-title-wrapper">
+            <span id="dossierCodeBadge" class="code-badge">GRO-41-001</span>
+            <h3 id="dossierTitle">Название объекта</h3>
+          </div>
+          <button class="modal-close" data-close="dossierModal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="dossier-grid">
+            <div class="dossier-field">
+              <label>Категория объекта:</label>
+              <span id="dossierCategory" class="field-value badge">--</span>
+            </div>
+            <div class="dossier-field">
+              <label>Период боев:</label>
+              <span id="dossierPeriod" class="field-value">--</span>
+            </div>
+            <div class="dossier-field">
+              <label>Подразделения:</label>
+              <span id="dossierUnit" class="field-value">--</span>
+            </div>
+            <div class="dossier-field">
+              <label>Координаты (WGS84):</label>
+              <span id="dossierCoords" class="field-value code">--</span>
+              <button id="btnCopyCoords" class="btn btn-sm btn-secondary" title="Копировать координаты">
+                <i class="fa-solid fa-copy"></i> Копировать
+              </button>
+            </div>
+            <div class="dossier-field">
+              <label>Оценка глубины залегания:</label>
+              <span id="dossierDepth" class="field-value">--</span>
+            </div>
+            <div class="dossier-field">
+              <label>Оценка потерь / Емкость:</label>
+              <span id="dossierCasualties" class="field-value highlight">--</span>
+            </div>
+          </div>
+
+          <hr class="tactical-divider"/>
+
+          <div class="dossier-section">
+            <h4><i class="fa-solid fa-file-lines"></i> Историческая справка и описание боев</h4>
+            <div id="dossierDescription" class="dossier-text-block">--</div>
+          </div>
+
+          <div class="dossier-section">
+            <h4><i class="fa-solid fa-building-columns"></i> Архивное обоснование (ЦАМО / NARA / ОБД Мемориал)</h4>
+            <div id="dossierArchiveRef" class="dossier-archive-box">--</div>
+          </div>
+
+          <div class="dossier-section">
+            <h4><i class="fa-solid fa-magnifying-glass-location"></i> Рекомендации для поисковой группы</h4>
+            <div id="dossierRecommendation" class="dossier-recommendation-box">--</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btnDossierExportGPX" class="btn btn-primary">
+            <i class="fa-solid fa-file-export"></i> Экспортировать в GPX
+          </button>
+          <button id="btnDossierFocusMap" class="btn btn-success">
+            <i class="fa-solid fa-location-dot"></i> Показать на карте
+          </button>
+          <button class="btn btn-secondary" data-close="dossierModal">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Field Point Modal -->
+  <div id="pointModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-dialog">
+      <div class="modal-content tactical-card">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-location-plus"></i> Ввод новой поисковой точки</h3>
+          <button class="modal-close" data-close="pointModal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="pointForm">
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Название объекта / Района *</label>
+              <input type="text" id="iptName" class="form-input" placeholder="Например: Засыпанный раскоп у д. Новики" required>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Широта (Lat) *</label>
+                <input type="number" step="any" id="iptLat" class="form-input" placeholder="53.8306" required>
+              </div>
+              <div class="form-group">
+                <label>Долгота (Lng) *</label>
+                <input type="number" step="any" id="iptLng" class="form-input" placeholder="23.6444" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Категория *</label>
+                <select id="iptCategory" class="form-select">
+                  <option value="prospective_burial">Перспективная неучтенка</option>
+                  <option value="san_burial">Санзахоронение / Воронка</option>
+                  <option value="fortification">ДОТ / Блиндаж</option>
+                  <option value="river_crossing">Переправа / Место боя</option>
+                  <option value="field_finding">Полевая находка</option>
+                  <option value="official_memorial">Официальное захоронение</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Период боев</label>
+                <select id="iptPeriod" class="form-select">
+                  <option value="1941">1941 (Июнь-Июль)</option>
+                  <option value="1944">1944 (Июль, Багратион)</option>
+                  <option value="1941/1944">1941 и 1944 гг.</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Воинское подразделение (полк/дивизия)</label>
+              <input type="text" id="iptUnit" class="form-input" placeholder="Например: 56-я стрелковая дивизия">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Оценка глубины (м)</label>
+                <input type="text" id="iptDepth" class="form-input" placeholder="0.8 - 1.5 м">
+              </div>
+              <div class="form-group">
+                <label>Оценка количества бойцов</label>
+                <input type="text" id="iptCasualties" class="form-input" placeholder="5-10 человек">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Описание и привязка к местности</label>
+              <textarea id="iptDescription" class="form-textarea" rows="3" placeholder="Описание ориентиров, воронки, траншеи или найденных гильз..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Рекомендации для поисковой группы</label>
+              <textarea id="iptRecommendation" class="form-textarea" rows="2" placeholder="Например: заложить шурф на опушке леса в 20м от дороги..."></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success"><i class="fa-solid fa-floppy-disk"></i> Сохранить точку</button>
+            <button type="button" class="btn btn-secondary" data-close="pointModal">Отмена</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- GPX / KML Export & Import Modal -->
+  <div id="exportModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-dialog">
+      <div class="modal-content tactical-card">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-file-export"></i> Экспорт и Импорт Геоданных</h3>
+          <button class="modal-close" data-close="exportModal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="export-section">
+            <h4><i class="fa-solid fa-download"></i> Экспорт в мобильные навигаторы</h4>
+            <p>Выгрузите точки перспективных захоронений для работы в лесу без сети Интернет (OsmAnd, Garmin, Locus Map, Maps.me):</p>
+            <div class="btn-group-grid">
+              <button id="btnExportGPXAll" class="btn btn-primary">
+                <i class="fa-solid fa-file-code"></i> Скачать GPX (Все точки)
+              </button>
+              <button id="btnExportKMLAll" class="btn btn-secondary">
+                <i class="fa-solid fa-earth-americas"></i> Скачать KML (Google Earth)
+              </button>
+            </div>
+          </div>
+
+          <hr class="tactical-divider"/>
+
+          <div class="export-section">
+            <h4><i class="fa-solid fa-upload"></i> Импорт пользовательских треков и точек (GPX)</h4>
+            <p>Загрузите трек или точки с вашего туристического GPS-навигатора:</p>
+            <div class="file-drop-zone" id="gpxDropZone">
+              <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+              <span>Перетащите GPX файл сюда или нажмите для выбора</span>
+              <input type="file" id="gpxFileInput" accept=".gpx" style="display:none;">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-close="exportModal">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- External JavaScript Libraries -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- Data & Utilities -->
+  <script src="data/history-data.js"></script>
+  <script src="data/gpx-kml-utils.js"></script>
+  
+  <!-- Main Application Script -->
+  <script src="app.js"></script>
+</body>
+</html>
