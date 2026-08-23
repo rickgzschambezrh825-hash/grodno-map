@@ -122,6 +122,9 @@
         <button class="tab-btn" data-tab="tabSources">
           <i class="fa-solid fa-box-archive"></i> Архивы
         </button>
+        <button class="tab-btn" data-tab="tabMemoirs">
+          <i class="fa-solid fa-quote-right"></i> Мемуары
+        </button>
         <button class="tab-btn" data-tab="tabLayers">
           <i class="fa-solid fa-layer-group"></i> Слои карт
         </button>
@@ -150,18 +153,32 @@
           </div>
         </div>
 
-        <!-- Tab 4: Cartographic Layers Control -->
+        <!-- Tab 4: Memoirs & Witness Testimonies -->
+        <div id="tabMemoirs" class="tab-pane">
+          <div id="memoirsList" class="memoirs-directory">
+            <!-- Memoirs Rendered Dynamically -->
+          </div>
+          <hr class="tactical-divider" style="margin: 16px 0;"/>
+          <h4 style="font-size:12px; color:var(--text-muted); text-transform:uppercase; margin-bottom:10px;">
+            <i class="fa-solid fa-camera"></i> Фотоархив и документы боев
+          </h4>
+          <div id="photoList" class="photo-directory">
+            <!-- Photos Rendered Dynamically -->
+          </div>
+        </div>
+
+        <!-- Tab 5: Cartographic Layers Control -->
         <div id="tabLayers" class="tab-pane">
           <div class="layers-manager">
             <div class="layer-section">
-              <h4><i class="fa-solid fa-globe"></i> Базовая спутниковая подложка</h4>
+              <h4><i class="fa-solid fa-globe"></i> Выбор базовой карты подложки</h4>
               <div class="layer-option-group" id="baseMapOptions">
                 <!-- Base layers generated dynamically -->
               </div>
             </div>
 
             <div class="layer-section">
-              <h4><i class="fa-solid fa-map"></i> Исторические карты и Аэрофото</h4>
+              <h4><i class="fa-solid fa-map"></i> Наложение исторических карт и аэрофото</h4>
               <div class="overlay-layers-list" id="overlayLayersOptions">
                 <!-- Overlay layers with opacity sliders -->
               </div>

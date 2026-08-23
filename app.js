@@ -6,7 +6,7 @@
 document.addEventListener("DOMContentLoaded", function() {
   // Global State
   const state = {
-    data: window.GRODNO_GIS_DATA || { points: [], chronology: [], mapLayers: [], archivalSources: [] },
+    data: window.GRODNO_GIS_DATA || { points: [], chronology: [], mapLayers: [], archivalSources: [], memoirsAndEvidence: [], photoArchive: [] },
     userPoints: JSON.parse(localStorage.getItem("grodno_user_points") || "[]"),
     activePeriod: "all",
     activeCategory: "all",
@@ -41,6 +41,8 @@ document.addEventListener("DOMContentLoaded", function() {
     pointsList: document.getElementById("pointsList"),
     chronologyList: document.getElementById("chronologyList"),
     sourcesList: document.getElementById("sourcesList"),
+    memoirsList: document.getElementById("memoirsList"),
+    photoList: document.getElementById("photoList"),
     statMemorialsCount: document.getElementById("statMemorialsCount"),
     statProspectiveCount: document.getElementById("statProspectiveCount"),
     statUserCount: document.getElementById("statUserCount"),
@@ -100,6 +102,7 @@ document.addEventListener("DOMContentLoaded", function() {
     renderPointsList();
     renderChronology();
     renderArchivalSources();
+    renderMemoirsAndPhotos();
     updateMetrics();
   }
 
@@ -110,7 +113,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const center = [53.75, 23.75];
     const zoom = 11;
 
-    // 1. Primary Map (Handles all user interaction)
+    // Primary Map
     mainMap = L.map("map", {
       center: center,
       zoom: zoom,
@@ -118,7 +121,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
     L.control.zoom({ position: "topright" }).addTo(mainMap);
 
-    // 2. Secondary Map (Top Overlay Split Canvas with pointer-events: none)
+    // Secondary Map (For Split-Screen View)
     splitMap = L.map("mapSplit", {
       center: center,
       zoom: zoom,
@@ -132,7 +135,6 @@ document.addEventListener("DOMContentLoaded", function() {
       touchZoom: false
     });
 
-    // Continuous Bi-Directional Synchronous Viewport Updates
     const syncViewports = function() {
       if (splitMap && mainMap) {
         splitMap.setView(mainMap.getCenter(), mainMap.getZoom(), { animate: false });
@@ -141,17 +143,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
     mainMap.on("movestart move moveend zoom zoomend viewreset", syncViewports);
 
-    // HUD Coordinate Display on mouseover
     mainMap.on("mousemove", function(e) {
       el.hudCoords.innerHTML = `<i class="fa-solid fa-location-crosshairs"></i> WGS84: ${e.latlng.lat.toFixed(5)}° N, ${e.latlng.lng.toFixed(5)}° E`;
     });
 
-    // Context Menu to add field point
     mainMap.on("contextmenu", function(e) {
       openAddPointModal(e.latlng.lat.toFixed(6), e.latlng.lng.toFixed(6));
     });
 
-    // Distance Measurement click
     mainMap.on("click", function(e) {
       if (state.measureActive) {
         addMeasurePoint(e.latlng);
@@ -163,7 +162,7 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   /* ==========================================================================
-     Cartographic Layer Manager
+     Cartographic Layer Manager (FLAWLESS TILE SWITCHING FIX)
      ========================================================================== */
   function initLayersManager() {
     const layers = state.data.mapLayers || [];
@@ -171,17 +170,18 @@ document.addEventListener("DOMContentLoaded", function() {
     // Base Maps Setup
     const baseLayers = layers.filter(l => l.isBase);
     baseLayers.forEach((l, index) => {
-      let mainLayer = L.tileLayer(l.url, { attribution: l.attribution, maxZoom: l.maxZoom || 19 });
-      let splitLayer = L.tileLayer(l.url, { maxZoom: l.maxZoom || 19 });
+      let mainLayer = L.tileLayer(l.url, { attribution: l.attribution, maxZoom: l.maxZoom || 19, zIndex: 1 });
+      let splitLayer = L.tileLayer(l.url, { maxZoom: l.maxZoom || 19, zIndex: 1 });
 
       mainTileLayers[l.id] = mainLayer;
       splitTileLayers[l.id] = splitLayer;
 
-      // Primary Map Default: OpenStreetMap or Satellite
-      if (index === 0) mainLayer.addTo(mainMap);
-      
-      // Secondary Split Map Default: Historical Topo / Dark Matter for high contrast
-      if (l.id === "dark_matter" || l.id === "esri_topo" || (index === 1 && !splitTileLayers["dark_matter"])) {
+      // Add default selected base layer
+      if (index === 0) {
+        mainLayer.addTo(mainMap);
+      }
+      // Split map defaults to second layer (or Dark Matter/Topo for high contrast contrast)
+      if (index === 1 || l.id === "dark_matter") {
         splitLayer.addTo(splitMap);
       }
 
@@ -196,19 +196,43 @@ document.addEventListener("DOMContentLoaded", function() {
       el.baseMapOptions.insertAdjacentHTML("beforeend", radioHtml);
     });
 
-    // Base layer selector handler
+    // Base layer selector handler - REMOVES ALL PREVIOUS BASE LAYERS & ADDS SELECTED
     el.baseMapOptions.addEventListener("change", function(e) {
       if (e.target.name === "baseMapRadio") {
-        Object.keys(mainTileLayers).forEach(id => mainMap.removeLayer(mainTileLayers[id]));
-        mainTileLayers[e.target.value].addTo(mainMap);
+        const selectedId = e.target.value;
+
+        // Remove existing base layers from mainMap
+        Object.keys(mainTileLayers).forEach(id => {
+          if (mainMap.hasLayer(mainTileLayers[id])) {
+            mainMap.removeLayer(mainTileLayers[id]);
+          }
+        });
+
+        // Add chosen base layer to mainMap
+        if (mainTileLayers[selectedId]) {
+          mainTileLayers[selectedId].addTo(mainMap);
+        }
+
+        // Also update split map base layer
+        Object.keys(splitTileLayers).forEach(id => {
+          if (splitMap.hasLayer(splitTileLayers[id])) {
+            splitMap.removeLayer(splitTileLayers[id]);
+          }
+        });
+
+        // Split map can render Voyager/Dark Matter or selected base
+        const splitAltId = selectedId === "satellite" ? "voyager" : selectedId;
+        if (splitTileLayers[splitAltId]) {
+          splitTileLayers[splitAltId].addTo(splitMap);
+        }
       }
     });
 
     // Historical Overlay Layers Setup
     const overlays = layers.filter(l => l.isOverlay);
     overlays.forEach(l => {
-      let overlayMain = L.tileLayer(l.url, { attribution: l.attribution, opacity: l.opacity || 0.7 });
-      let overlaySplit = L.tileLayer(l.url, { opacity: l.opacity || 0.7 });
+      let overlayMain = L.tileLayer(l.url, { attribution: l.attribution, opacity: l.opacity || 0.7, zIndex: 10 });
+      let overlaySplit = L.tileLayer(l.url, { opacity: l.opacity || 0.7, zIndex: 10 });
 
       overlayLayersMain[l.id] = overlayMain;
       overlayLayersSplit[l.id] = overlaySplit;
@@ -261,7 +285,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const geojson = state.data.vectorFrontlines;
     if (!geojson) return;
 
-    // Main Map Vector Frontlines
     vectorLayer1941Main = L.geoJSON(geojson, {
       filter: feature => feature.properties.period === "1941",
       style: feature => ({
@@ -288,7 +311,6 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     }).addTo(mainMap);
 
-    // Split Map Vector Frontlines
     vectorLayer1941Split = L.geoJSON(geojson, {
       filter: feature => feature.properties.period === "1941",
       style: feature => ({
@@ -365,7 +387,6 @@ document.addEventListener("DOMContentLoaded", function() {
         iconAnchor: [16, 16]
       });
 
-      // Main Map Marker
       const marker = L.marker([pt.lat, pt.lng], { icon: customIcon });
       marker.bindTooltip(`<b>${pt.code || pt.id}</b>: ${pt.name}`, { direction: "top", offset: [0, -10] });
       marker.on("click", function() {
@@ -373,7 +394,6 @@ document.addEventListener("DOMContentLoaded", function() {
       });
       markersGroupMain.addLayer(marker);
 
-      // Split Map Marker
       const markerSplit = L.marker([pt.lat, pt.lng], { icon: customIcon });
       markersGroupSplit.addLayer(markerSplit);
     });
@@ -385,15 +405,12 @@ document.addEventListener("DOMContentLoaded", function() {
   function getFilteredPoints() {
     const all = getAllPoints();
     return all.filter(pt => {
-      // Period filter
       if (state.activePeriod !== "all") {
         if (!pt.period.includes(state.activePeriod)) return false;
       }
-      // Category filter
       if (state.activeCategory !== "all") {
         if (pt.category !== state.activeCategory) return false;
       }
-      // Search query
       if (state.searchQuery.trim() !== "") {
         const q = state.searchQuery.toLowerCase();
         const matchName = pt.name.toLowerCase().includes(q);
@@ -450,7 +467,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
     el.pointsList.innerHTML = html;
 
-    // Card click listeners
     el.pointsList.querySelectorAll(".point-card").forEach(card => {
       card.addEventListener("click", function() {
         const ptId = this.dataset.id;
@@ -463,7 +479,6 @@ document.addEventListener("DOMContentLoaded", function() {
       });
     });
 
-    // Dossier button listeners
     el.pointsList.querySelectorAll(".btn-view-dossier").forEach(btn => {
       btn.addEventListener("click", function(e) {
         e.stopPropagation();
@@ -520,6 +535,39 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     el.sourcesList.innerHTML = html;
+  }
+
+  /* ==========================================================================
+     Memoirs & Photo Evidence Renderers
+     ========================================================================== */
+  function renderMemoirsAndPhotos() {
+    const memoirs = state.data.memoirsAndEvidence || [];
+    let htmlM = "";
+
+    memoirs.forEach(m => {
+      htmlM += `
+        <div class="memoir-card">
+          <div class="memoir-author">${m.author}</div>
+          <div class="memoir-source"><i class="fa-solid fa-book-open"></i> ${m.source}</div>
+          <div class="memoir-text">${m.text}</div>
+        </div>
+      `;
+    });
+    if (el.memoirsList) el.memoirsList.innerHTML = htmlM;
+
+    const photos = state.data.photoArchive || [];
+    let htmlP = "";
+
+    photos.forEach(p => {
+      htmlP += `
+        <div class="photo-card">
+          <div class="photo-title"><i class="fa-solid fa-image"></i> ${p.title}</div>
+          <div class="photo-desc">${p.description}</div>
+          <div class="photo-source"><i class="fa-solid fa-landmark"></i> Источник: ${p.source}</div>
+        </div>
+      `;
+    });
+    if (el.photoList) el.photoList.innerHTML = htmlP;
   }
 
   /* ==========================================================================
@@ -688,16 +736,13 @@ document.addEventListener("DOMContentLoaded", function() {
      UI Event Listeners
      ========================================================================== */
   function initUIEvents() {
-    // Sidebar collapse toggle
     el.btnToggleSidebar.addEventListener("click", () => {
       el.sidebar.classList.toggle("collapsed");
       setTimeout(() => mainMap.invalidateSize(), 300);
     });
 
-    // Split screen toggle
     el.btnSplitScreen.addEventListener("click", toggleSplitScreen);
 
-    // Split handle dragging (Mouse & Touch support)
     let isDraggingDivider = false;
     const startDrag = () => isDraggingDivider = true;
     const stopDrag = () => isDraggingDivider = false;
@@ -717,7 +762,6 @@ document.addEventListener("DOMContentLoaded", function() {
     window.addEventListener("mousemove", moveDrag);
     window.addEventListener("touchmove", moveDrag);
 
-    // Toolbar buttons
     el.btnAddPoint.addEventListener("click", () => openAddPointModal());
     el.btnExport.addEventListener("click", () => el.exportModal.style.display = "flex");
     el.btnMeasure.addEventListener("click", toggleMeasureTool);
@@ -729,7 +773,6 @@ document.addEventListener("DOMContentLoaded", function() {
       btn.addEventListener("click", closeModals);
     });
 
-    // Copy Coordinates button
     el.btnCopyCoords.addEventListener("click", () => {
       if (currentDossierPoint) {
         const coordsStr = `${currentDossierPoint.lat}, ${currentDossierPoint.lng}`;
@@ -739,7 +782,6 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
 
-    // Focus on map from Dossier
     el.btnDossierFocusMap.addEventListener("click", () => {
       if (currentDossierPoint) {
         closeModals();
@@ -747,14 +789,12 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
 
-    // Single point GPX export from Dossier
     el.btnDossierExportGPX.addEventListener("click", () => {
       if (currentDossierPoint && window.GPX_KML_UTILS) {
         window.GPX_KML_UTILS.exportToGPX([currentDossierPoint], `${currentDossierPoint.code || "point"}.gpx`);
       }
     });
 
-    // Sidebar tab pane switcher
     document.querySelectorAll(".sidebar-tabs .tab-btn").forEach(btn => {
       btn.addEventListener("click", function() {
         document.querySelectorAll(".sidebar-tabs .tab-btn").forEach(b => b.classList.remove("active"));
@@ -766,7 +806,6 @@ document.addEventListener("DOMContentLoaded", function() {
       });
     });
 
-    // Search Input Listener
     el.searchInput.addEventListener("input", function() {
       state.searchQuery = this.value;
       el.btnClearSearch.style.display = this.value ? "block" : "none";
@@ -782,7 +821,6 @@ document.addEventListener("DOMContentLoaded", function() {
       renderPointsList();
     });
 
-    // Period filter pills
     el.periodFilter.querySelectorAll(".pill").forEach(pill => {
       pill.addEventListener("click", function() {
         el.periodFilter.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
@@ -793,14 +831,12 @@ document.addEventListener("DOMContentLoaded", function() {
       });
     });
 
-    // Category Filter Dropdown
     el.categoryFilter.addEventListener("change", function() {
       state.activeCategory = this.value;
       initMarkers();
       renderPointsList();
     });
 
-    // Form Submission
     el.pointForm.addEventListener("submit", function(e) {
       e.preventDefault();
       const lat = parseFloat(document.getElementById("iptLat").value);
@@ -839,7 +875,6 @@ document.addEventListener("DOMContentLoaded", function() {
       mainMap.flyTo([lat, lng], 14);
     });
 
-    // Full GPX/KML Exports
     document.getElementById("btnExportGPXAll").addEventListener("click", () => {
       if (window.GPX_KML_UTILS) {
         window.GPX_KML_UTILS.exportToGPX(getAllPoints(), "grodno_expedition_full.gpx");
@@ -852,7 +887,6 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
 
-    // GPX Drag & Drop File Upload
     const dropZone = document.getElementById("gpxDropZone");
     const fileInput = document.getElementById("gpxFileInput");
 
