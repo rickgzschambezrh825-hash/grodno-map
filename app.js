@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   /* ==========================================================================
-     Cartographic Layer Manager (FLAWLESS TILE SWITCHING FIX)
+     Cartographic Layer Manager
      ========================================================================== */
   function initLayersManager() {
     const layers = state.data.mapLayers || [];
@@ -176,11 +176,9 @@ document.addEventListener("DOMContentLoaded", function() {
       mainTileLayers[l.id] = mainLayer;
       splitTileLayers[l.id] = splitLayer;
 
-      // Add default selected base layer
       if (index === 0) {
         mainLayer.addTo(mainMap);
       }
-      // Split map defaults to second layer (or Dark Matter/Topo for high contrast contrast)
       if (index === 1 || l.id === "dark_matter") {
         splitLayer.addTo(splitMap);
       }
@@ -196,31 +194,27 @@ document.addEventListener("DOMContentLoaded", function() {
       el.baseMapOptions.insertAdjacentHTML("beforeend", radioHtml);
     });
 
-    // Base layer selector handler - REMOVES ALL PREVIOUS BASE LAYERS & ADDS SELECTED
+    // Base layer selector handler - REMOVES PREVIOUS BASE LAYERS & ADDS SELECTED
     el.baseMapOptions.addEventListener("change", function(e) {
       if (e.target.name === "baseMapRadio") {
         const selectedId = e.target.value;
 
-        // Remove existing base layers from mainMap
         Object.keys(mainTileLayers).forEach(id => {
           if (mainMap.hasLayer(mainTileLayers[id])) {
             mainMap.removeLayer(mainTileLayers[id]);
           }
         });
 
-        // Add chosen base layer to mainMap
         if (mainTileLayers[selectedId]) {
           mainTileLayers[selectedId].addTo(mainMap);
         }
 
-        // Also update split map base layer
         Object.keys(splitTileLayers).forEach(id => {
           if (splitMap.hasLayer(splitTileLayers[id])) {
             splitMap.removeLayer(splitTileLayers[id]);
           }
         });
 
-        // Split map can render Voyager/Dark Matter or selected base
         const splitAltId = selectedId === "satellite" ? "voyager" : selectedId;
         if (splitTileLayers[splitAltId]) {
           splitTileLayers[splitAltId].addTo(splitMap);
@@ -252,7 +246,6 @@ document.addEventListener("DOMContentLoaded", function() {
       el.overlayLayersOptions.insertAdjacentHTML("beforeend", overlayHtml);
     });
 
-    // Overlay checkbox & slider handler
     el.overlayLayersOptions.addEventListener("change", function(e) {
       const overlayId = e.target.dataset.overlay;
       const sliderId = e.target.dataset.slider;
@@ -443,6 +436,14 @@ document.addEventListener("DOMContentLoaded", function() {
       const catConfig = state.data.categories[pt.category] || { label: pt.category, color: "#2ecc71" };
       const isSelected = pt.id === state.selectedPointId;
 
+      // DYNAMIC SOURCE BADGE DETERMINATION
+      const sourceBadge = pt.sourceBadge || (
+        (pt.tsamoRef || "").includes("NARA") ? "Архив NARA (США)" :
+        (pt.tsamoRef || "").includes("Лютик") ? "Д. Лютик / GRO-Registry" :
+        (pt.tsamoRef || "").includes("ПО НКВД") ? "86 ПО НКВД" :
+        (pt.tsamoRef || "").includes("Паспорт") ? "Воинский Мемориал" : "Досье ЦАМО"
+      );
+
       html += `
         <div class="point-card ${isSelected ? "selected" : ""}" data-id="${pt.id}">
           <div class="point-card-header">
@@ -458,7 +459,7 @@ document.addEventListener("DOMContentLoaded", function() {
           <div class="point-card-actions">
             <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">${pt.lat.toFixed(4)}°, ${pt.lng.toFixed(4)}°</span>
             <button class="btn btn-sm btn-tactical btn-view-dossier" data-id="${pt.id}">
-              <i class="fa-solid fa-folder-open"></i> Досье ЦАМО
+              <i class="fa-solid fa-folder-open"></i> ${sourceBadge}
             </button>
           </div>
         </div>
