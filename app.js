@@ -444,6 +444,9 @@ document.addEventListener("DOMContentLoaded", function() {
         (pt.tsamoRef || "").includes("Паспорт") ? "Воинский Мемориал" : "Досье ЦАМО"
       );
 
+      // Short preview (first paragraph)
+      const shortDesc = (pt.description || "").split("\n\n")[0] || "";
+
       html += `
         <div class="point-card ${isSelected ? "selected" : ""}" data-id="${pt.id}">
           <div class="point-card-header">
@@ -455,7 +458,7 @@ document.addEventListener("DOMContentLoaded", function() {
             <span class="point-meta-item"><i class="fa-solid fa-calendar-days"></i> ${pt.period}</span>
             ${pt.estimatedCasualties ? `<span class="point-meta-item" style="color:var(--color-accent-amber);"><i class="fa-solid fa-skull"></i> ${pt.estimatedCasualties}</span>` : ""}
           </div>
-          <div class="point-desc-short">${pt.description || ""}</div>
+          <div class="point-desc-short">${shortDesc}</div>
           <div class="point-card-actions">
             <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">${pt.lat.toFixed(4)}°, ${pt.lng.toFixed(4)}°</span>
             <button class="btn btn-sm btn-tactical btn-view-dossier" data-id="${pt.id}">
@@ -586,7 +589,7 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   /* ==========================================================================
-     Modals & Dossier Handler
+     Modals & Dossier Handler (MULTI-PARAGRAPH FORMATTING)
      ========================================================================== */
   function openDossierModal(pt) {
     currentDossierPoint = pt;
@@ -601,7 +604,20 @@ document.addEventListener("DOMContentLoaded", function() {
     el.dossierCoords.textContent = `${pt.lat.toFixed(5)}° N, ${pt.lng.toFixed(5)}° E`;
     el.dossierDepth.textContent = pt.depthEstimate || "Н/Д";
     el.dossierCasualties.textContent = pt.estimatedCasualties || "Н/Д";
-    el.dossierDescription.textContent = pt.description || "Описание отсутствует.";
+
+    // Formatted 3-paragraph renderer with quote highlighting
+    const rawDesc = pt.description || "Описание отсутствует.";
+    const paragraphs = rawDesc.split("\n\n");
+    const paragraphsHtml = paragraphs.map(p => {
+      let text = p.trim();
+      if (text.startsWith("«") || text.includes("ЦАМО") || text.includes("NARA") || text.includes("Из ЖБД") || text.includes("Из воспоминаний") || text.includes("Из отчета") || text.includes("Из монографии")) {
+        return `<p style="margin-bottom:12px; line-height:1.6; font-size:12.5px; background: rgba(52, 152, 219, 0.08); border-left: 3px solid var(--color-accent-blue); padding: 8px 12px; border-radius: 0 4px 4px 0; font-style: italic;">${text}</p>`;
+      }
+      return `<p style="margin-bottom:12px; line-height:1.65; font-size:13px; text-align:justify; color: var(--text-primary);">${text}</p>`;
+    }).join("");
+
+    el.dossierDescription.innerHTML = paragraphsHtml;
+
     el.dossierArchiveRef.textContent = pt.tsamoRef || "Архивные ссылки уточняются.";
     el.dossierRecommendation.textContent = pt.recommendation || "Провести стандартное визуальное обследование.";
 
