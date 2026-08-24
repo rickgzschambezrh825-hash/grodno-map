@@ -26,12 +26,12 @@
 Веб-платформа интерактивной карты и базы данных военно-мемориального поиска в Гродненском районе.
 
 ### Основные компоненты:
-* **[app.js](file:///c:/Users/john/Documents/antigravity/map/app.js)** — Логика интерактивной карты, синхронизация сплит-экрана («Было - Стало»), фильтрация временных периодов (1941 / 1944), управление слоями, поисками воинов и объектов, расчетом расстояний линейкой и GPS-геолокацией.
-* **[index.html](file:///c:/Users/john/Documents/antigravity/map/index.html)** — Пользовательский интерфейс платформы (панели фильтрации, досье ЦАМО, вкладка мемуаров и фотоархива, модальные окна импорта/экспорта).
-* **[index.css](file:///c:/Users/john/Documents/antigravity/map/index.css)** — Тактическая темная стилистика веб-приложения (Glassmorphism, high-contrast field design, анимация радиоэлектронного пульса маркеров).
-* **[data/history-data.js](file:///c:/Users/john/Documents/antigravity/map/data/history-data.js)** — Расширенный набор данных по историческим объектам, захоронениям, заставам 86-го ПО, ДОТам 68-го УР, точкам GRO-Registry, выпискам из ЖБД ЦАМО/NARA, мемуарам (Сивачев, Кузнецов, Осликовский, KTB 28. Jäger-Division) и фотоархиву.
-* **[data/gpx-kml-utils.js](file:///c:/Users/john/Documents/antigravity/map/data/gpx-kml-utils.js)** — Утилиты импорта/экспорта геоданных в форматах GPX/KML для мобильных навигаторов (OsmAnd, Garmin, Locus Map).
-* **[sw.js](file:///c:/Users/john/Documents/antigravity/map/sw.js)** & **[manifest.json](file:///c:/Users/john/Documents/antigravity/map/manifest.json)** — Service Worker и манифест PWA для офлайн-кеширования карт в полевых условиях без связи.
+* **[app.js](file:///c:/Users/john/Documents/antigravity/map/app.js)** — Логика интерактивной карты, синхронизация сплит-экрана («Было - Стало»), фильтрация временных периодов (1941 / 1944), управление слоями, поисками воинов и объектов, расчетом расстояний линейкой, непрерывным GPS-трекингом, тактическим компасом наведения и записью маршрутов.
+* **[index.html](file:///c:/Users/john/Documents/antigravity/map/index.html)** — Пользовательский интерфейс платформы (панели фильтрации, досье ЦАМО/NARA, вкладка мемуаров и фотоархива, модальные окна импорта/экспорта, мобильный тактический док).
+* **[index.css](file:///c:/Users/john/Documents/antigravity/map/index.css)** — Тактическая темная стилистика веб-приложения (Glassmorphism, high-contrast field design, анимация радиоэлектронного пульса маркеров, стили полевого планшета).
+* **[data/history-data.js](file:///c:/Users/john/Documents/antigravity/map/data/history-data.js)** — Расширенный набор данных по 35 историческим объектам, захоронениям, заставам 86-го ПО, ДОТам 68-го УР, точкам GRO-Registry с трехпараграфными досье и цитатами ЖБД ЦАМО/NARA, мемуарам (Сивачев, Кузнецов, Осликовский, KTB 28. Jäger-Division) и фотоархиву.
+* **[data/gpx-kml-utils.js](file:///c:/Users/john/Documents/antigravity/map/data/gpx-kml-utils.js)** — Утилиты импорта/экспорта геоданных в форматах GPX/KML/GeoJSON для мобильных навигаторов (OsmAnd, Garmin, Locus Map) и генератор печатного планшета формата А4.
+* **[sw.js](file:///c:/Users/john/Documents/antigravity/map/sw.js)** & **[manifest.json](file:///c:/Users/john/Documents/antigravity/map/manifest.json)** — Service Worker и манифест PWA для офлайн-кеширования карт и работы без сотовой связи в лесу.
 
 ---
 
@@ -98,5 +98,49 @@
 2. `detect_tie_points` — автоматический поиск парных точек связывания (Tie Points) между архивным снимком и эталоном через SIFT + RANSAC.
 3. `get_gro_registry_landmarks` — получение координат неизменных исторических реперов Гродненского района (ДОТы 68 УР, Форты, Шлюзы, Заставы).
 4. `assess_georef_accuracy` — валидация среднеквадратической ошибки (RMSE) и расчет пространственного разрешения пикселя на местности в метрах.
+
+---
+
+## 7. Публикация и Хостинг (GitHub Pages & Live Web-GIS)
+
+Веб-клиент геопортала опубликован и функционирует в облаке на **GitHub Pages** с поддержкой автоматического HTTPS, PWA и GPS.
+
+### Параметры хостинга:
+* **Рабочий URL геопортала:** [https://rickgzschambezrh825-hash.github.io/grodno-map/](https://rickgzschambezrh825-hash.github.io/grodno-map/)
+* **Репозиторий GitHub:** [https://github.com/rickgzschambezrh825-hash/grodno-map](https://github.com/rickgzschambezrh825-hash/grodno-map)
+* **Основная ветка развертывания:** `main` (источник сборки Pages: `/(root)`).
+* **Архитектурная схема:**
+  * **Облачный хостинг (GitHub Pages):** Содержит исключительно клиентский статический интерфейс (`index.html`, `index.css`, `app.js`, `data/`, `sw.js`, `manifest.json`).
+  * **Локальная рабочая станция:** Содержит исследовательские инструменты, скрипты фотограмметрии (`georef_engine.py`), тяжелые архивы NARA (`nara_gx_*` > 1.3 ГБ) и утилиты NotebookLM.
+
+### Протокол обновления данных для AI-агентов:
+При интеграции новых выявленных архивных точек или модификации функционала карты:
+1. Внести изменения в соответствующие файлы (например, [`data/history-data.js`](file:///c:/Users/john/Documents/antigravity/map/data/history-data.js)).
+2. Зафиксировать и отправить изменения в удаленный репозиторий:
+   ```powershell
+   git add data/history-data.js
+   git commit -m "feat(dataset): add new archival points from TsAMO/NARA"
+   git push origin main
+   ```
+3. Изменения автоматически собираются и публикуются на сайте в течение 30–60 секунд.
+
+---
+
+## 8. MCP-сервер GitHub (`github`)
+
+В систему интегрирован официальный MCP-сервер для прямого взаимодействия с GitHub API и репозиторием проекта.
+
+### Конфигурация MCP:
+* **Файл конфигурации:** `C:\Users\john\.gemini\antigravity\mcp_config.json`
+* **Имя сервера:** `github`
+* **Исполняемый пакет:** `@modelcontextprotocol/server-github` (через `npx`)
+* **Авторизация:** Personal Access Token (`GITHUB_PERSONAL_ACCESS_TOKEN`) в окружении MCP.
+
+### Доступные MCP-инструменты:
+1. `push_files` — атомарная пакетная отправка файлов в репозиторий в едином коммите.
+2. `create_or_update_file` — создание или перезапись отдельного файла в репозитории.
+3. `get_file_contents` / `search_code` — чтение файлов и поиск кода в удаленном репозитории.
+4. `list_commits` / `create_branch` / `create_pull_request` — управление версионированием и ветками.
+
 
 
