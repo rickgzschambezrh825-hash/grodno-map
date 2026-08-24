@@ -155,6 +155,19 @@ document.addEventListener("DOMContentLoaded", function() {
     linkDossierPamyat: document.getElementById("linkDossierPamyat"),
     linkDossierOBD: document.getElementById("linkDossierOBD"),
     
+    // Archive Document Reader Modal Elements
+    archiveDocModal: document.getElementById("archiveDocModal"),
+    docArchiveBadge: document.getElementById("docArchiveBadge"),
+    docTitle: document.getElementById("docTitle"),
+    docArchiveCode: document.getElementById("docArchiveCode"),
+    docDate: document.getElementById("docDate"),
+    docAuthor: document.getElementById("docAuthor"),
+    docSector: document.getElementById("docSector"),
+    docFullText: document.getElementById("docFullText"),
+    btnDocShowOnMap: document.getElementById("btnDocShowOnMap"),
+    btnDocCopyCitation: document.getElementById("btnDocCopyCitation"),
+    linkDocExternal: document.getElementById("linkDocExternal"),
+    
     // Export Elements
     btnExportGPXAll: document.getElementById("btnExportGPXAll"),
     btnExportGPXProspective: document.getElementById("btnExportGPXProspective"),
@@ -829,14 +842,14 @@ document.addEventListener("DOMContentLoaded", function() {
               ${s.specificDocs.map(doc => {
                 const icon = doc.type === "zhbd" ? "fa-book-journal-whills" : (doc.type === "map" ? "fa-map-location-dot" : (doc.type === "casualties" ? "fa-skull" : "fa-file-lines"));
                 return `
-                  <a class="source-doc-item" href="${doc.url}" target="_blank" rel="noopener" title="Открыть конкретный первоисточник в архиве">
+                  <div class="source-doc-item" data-doc-id="${doc.id}" title="Кликните, чтобы открыть подлинный оцифрованный текст документа">
                     <div class="doc-icon"><i class="fa-solid ${icon}"></i></div>
                     <div class="doc-info">
                       <div class="doc-title">${doc.title}</div>
                       <div class="doc-code">${doc.archiveCode}</div>
                     </div>
-                    <i class="fa-solid fa-arrow-up-right-from-square doc-ext-icon"></i>
-                  </a>
+                    <span class="doc-preview-badge"><i class="fa-solid fa-book-open"></i> Читать</span>
+                  </div>
                 `;
               }).join("")}
             </div>
@@ -870,10 +883,19 @@ document.addEventListener("DOMContentLoaded", function() {
 
     el.sourcesList.innerHTML = html;
 
+    // Attach Click Handlers to Specific Documents
+    el.sourcesList.querySelectorAll(".source-doc-item").forEach(item => {
+      item.addEventListener("click", function(e) {
+        e.stopPropagation();
+        const docId = this.dataset.docId;
+        if (docId) openArchiveDocModal(docId);
+      });
+    });
+
     // Attach Click Handlers to Cards and Map Action Buttons
     el.sourcesList.querySelectorAll(".btn-source-map, .source-card").forEach(item => {
       item.addEventListener("click", function(e) {
-        if (e.target.closest("a")) return; // Don't trigger if clicked external link
+        if (e.target.closest("a") || e.target.closest(".source-doc-item")) return;
         const srcId = this.dataset.id || this.closest(".source-card").dataset.id;
         const source = (state.data.archivalSources || []).find(s => s.id === srcId);
         if (!source) return;
@@ -912,6 +934,46 @@ document.addEventListener("DOMContentLoaded", function() {
         }
       });
     });
+  }
+
+  /* ==========================================================================
+     Archive Document Reader Modal
+     ========================================================================== */
+  let currentActiveDoc = null;
+
+  function openArchiveDocModal(docId) {
+    let foundDoc = null;
+    let parentSource = null;
+
+    (state.data.archivalSources || []).forEach(src => {
+      (src.specificDocs || []).forEach(d => {
+        if (d.id === docId) {
+          foundDoc = d;
+          parentSource = src;
+        }
+      });
+    });
+
+    if (!foundDoc) return;
+    currentActiveDoc = { doc: foundDoc, source: parentSource };
+
+    // Populate Fields
+    if (el.docArchiveBadge) el.docArchiveBadge.textContent = parentSource ? parentSource.code : "ЦАМО РФ";
+    if (el.docTitle) el.docTitle.textContent = foundDoc.title;
+    if (el.docArchiveCode) el.docArchiveCode.textContent = foundDoc.archiveCode || "ЦАМО РФ";
+    if (el.docDate) el.docDate.textContent = foundDoc.date || (parentSource ? parentSource.period : "1941");
+    if (el.docAuthor) el.docAuthor.textContent = foundDoc.author || (parentSource ? parentSource.commander : "--");
+    if (el.docSector) el.docSector.textContent = parentSource ? parentSource.sector : "Гродненский район";
+
+    if (el.docFullText) {
+      el.docFullText.innerHTML = foundDoc.fullText || `<p>${foundDoc.summary || ""}</p>`;
+    }
+
+    if (el.linkDocExternal) {
+      el.linkDocExternal.href = foundDoc.url || parentSource.pamyatNarodaUrl || "#";
+    }
+
+    if (el.archiveDocModal) el.archiveDocModal.style.display = "flex";
   }
 
   /* ==========================================================================
@@ -1691,6 +1753,55 @@ document.addEventListener("DOMContentLoaded", function() {
         showToast(`GPX для точки ${currentDossierPoint.code || ""} скачан`, "success");
       }
     });
+
+    // Archive Document Modal Actions
+    if (el.btnDocShowOnMap) {
+      el.btnDocShowOnMap.addEventListener("click", () => {
+        if (!currentActiveDoc) return;
+        const { doc, source } = currentActiveDoc;
+        closeModals();
+
+        if (doc.targetPointId) {
+          const pt = getAllPoints().find(p => p.id === doc.targetPointId);
+          if (pt) {
+            mainMap.flyTo([pt.lat, pt.lng], 16, { duration: 1.2 });
+            showToast(`Сектор документа «${doc.title}» локализован на карте`, "success");
+            if (window.innerWidth <= 768) {
+              el.sidebar.classList.add("collapsed");
+              if (el.dockBtnMap) el.dockBtnMap.click();
+            }
+            return;
+          }
+        }
+
+        // Fallback: show all points of this unit
+        if (source) {
+          const matchingPts = getPointsMatchingArchiveSource(source);
+          if (matchingPts.length > 0) {
+            const bounds = L.latLngBounds(matchingPts.map(p => [p.lat, p.lng]));
+            mainMap.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
+            showToast(`Сектор соединения «${source.name}» отображен на карте`, "info");
+            if (window.innerWidth <= 768) {
+              el.sidebar.classList.add("collapsed");
+              if (el.dockBtnMap) el.dockBtnMap.click();
+            }
+          }
+        }
+      });
+    }
+
+    if (el.btnDocCopyCitation) {
+      el.btnDocCopyCitation.addEventListener("click", () => {
+        if (!currentActiveDoc) return;
+        const { doc } = currentActiveDoc;
+        const citation = `«${doc.title}» [${doc.archiveCode}] — ${doc.date || ""}. Составитель: ${doc.author || ""}`;
+        navigator.clipboard.writeText(citation).then(() => {
+          showToast("Архивная цитата и шифр скопированы в буфер обмена", "success");
+        }).catch(() => {
+          showToast(citation, "info");
+        });
+      });
+    }
 
     document.querySelectorAll(".sidebar-tabs .tab-btn").forEach(btn => {
       btn.addEventListener("click", function() {

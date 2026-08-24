@@ -659,6 +659,75 @@
     </div>
   </div>
 
+  <!-- Archive Document Reader Modal (Full Historical Dossier & Quotes) -->
+  <div id="archiveDocModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-dialog modal-dialog-lg">
+      <div class="modal-content tactical-card archive-doc-card">
+        <div class="modal-header">
+          <div class="modal-title-with-badge">
+            <span id="docArchiveBadge" class="source-code">ЦАМО РФ</span>
+            <span class="archive-stamp">АРХИВНЫЙ ПЕРВОИСТОЧНИК</span>
+          </div>
+          <button class="modal-close" data-close="archiveDocModal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="archive-header-block">
+            <h3 id="docTitle" class="archive-doc-title">Заголовок документа</h3>
+            <div class="archive-meta-grid">
+              <div class="meta-item">
+                <i class="fa-solid fa-folder-closed"></i>
+                <div>
+                  <span class="label">Шифр хранения:</span>
+                  <span id="docArchiveCode" class="val code">--</span>
+                </div>
+              </div>
+              <div class="meta-item">
+                <i class="fa-solid fa-calendar-day"></i>
+                <div>
+                  <span class="label">Дата / Период:</span>
+                  <span id="docDate" class="val">--</span>
+                </div>
+              </div>
+              <div class="meta-item">
+                <i class="fa-solid fa-user-pen"></i>
+                <div>
+                  <span class="label">Составитель / Командир:</span>
+                  <span id="docAuthor" class="val">--</span>
+                </div>
+              </div>
+              <div class="meta-item">
+                <i class="fa-solid fa-location-crosshairs"></i>
+                <div>
+                  <span class="label">Район / Сектор:</span>
+                  <span id="docSector" class="val">--</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="archive-doc-wrapper">
+            <div class="archive-watermark">ЦАМО / РГВА / NARA</div>
+            <div id="docFullText" class="archive-doc-content">
+              <!-- Full Archival Text Rendered Here -->
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btnDocShowOnMap" class="btn btn-tactical" title="Показать сектор боев на карте">
+            <i class="fa-solid fa-map-location-dot"></i> Показать на карте
+          </button>
+          <button id="btnDocCopyCitation" class="btn btn-secondary" title="Скопировать цитату и архивный шифр в буфер">
+            <i class="fa-solid fa-copy"></i> Копировать шифр
+          </button>
+          <a id="linkDocExternal" href="#" target="_blank" rel="noopener" class="btn btn-primary" title="Открыть в архивной базе">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Поиск в базе архива
+          </a>
+          <button class="btn btn-secondary" data-close="archiveDocModal">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container"></div>
 
