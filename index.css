@@ -646,6 +646,43 @@ html, body {
   color: #000;
 }
 
+/* ==========================================================================
+   Historical Map Overlay Visual Filters (Period-Accurate Styles)
+   ========================================================================== */
+
+/* RKKA General Staff 1941 Topo Style: Warm Khaki/Ochre Paper Tone & Soviet Topo Colors */
+.layer-rkka-1941 {
+  filter: sepia(35%) contrast(125%) hue-rotate(-12deg) saturate(135%) brightness(96%) !important;
+}
+
+/* German Messtischblatt / Deutsche Heereskarte 1:25k: High-Contrast Antique Engraved Monochrome */
+.layer-german-map {
+  filter: grayscale(88%) contrast(165%) brightness(102%) sepia(12%) !important;
+}
+
+/* Polish WIG 1:100k (1930s): Vintage Sepia Polish Military Printing */
+.layer-wig-map {
+  filter: sepia(55%) contrast(130%) brightness(94%) saturate(115%) !important;
+}
+
+/* NARA RG-373 Aerial Reconnaissance: Panchromatic Monochrome & Infrared Aerial Film */
+.layer-aerial-recon {
+  filter: grayscale(100%) contrast(145%) brightness(92%) !important;
+}
+
+/* NARA Aerial Footprint Polygons */
+.nara-footprint-label {
+  background: rgba(10, 15, 20, 0.85);
+  border: 1px solid #00e5ff;
+  color: #00e5ff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+  white-space: nowrap;
+}
+
 .source-actions-bar {
   display: flex;
   flex-wrap: wrap;

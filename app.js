@@ -390,11 +390,76 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
 
+    // NARA Aerial Reconnaissance Flight Sectors
+    const NARA_AERIAL_SECTORS = [
+      {
+        id: "GX-12450-SD",
+        name: "Полетная полоса NARA GX 12450-SD (23.06.1941)",
+        bounds: [[53.7747, 23.5437], [53.8849, 23.6865]],
+        desc: "Аэрофоторазведка Люфтваффе: Сопоцкин — Новики — ДОТ № 86 — 86 ПО НКВД"
+      },
+      {
+        id: "GX-2831-SD",
+        name: "Полетная полоса NARA GX 2831-SD (1941 г.)",
+        bounds: [[53.8169, 23.6481], [53.9205, 23.7854]],
+        desc: "Аэрофоторазведка рубежей Августовского канала, шлюза Немново и Домбровка"
+      },
+      {
+        id: "GX-4145-SD",
+        name: "Полетная полоса NARA GX 4145-SD (Июль 1944 г.)",
+        bounds: [[53.6446, 23.7305], [53.7617, 23.8843]],
+        desc: "Аэрофоторазведка переправ р. Неман, урочища Пышки и Солы (31-я армия, 2-й гв. кк)"
+      }
+    ];
+
+    let naraFootprintsMain = L.featureGroup();
+    let naraFootprintsSplit = L.featureGroup();
+
+    NARA_AERIAL_SECTORS.forEach(sec => {
+      const rectMain = L.rectangle(sec.bounds, {
+        color: "#00e5ff",
+        weight: 1.5,
+        dashArray: "6, 6",
+        fillColor: "#00e5ff",
+        fillOpacity: 0.08
+      }).bindTooltip(`<div class="nara-footprint-label"><i class="fa-solid fa-camera"></i> ${sec.name}</div>`, {
+        permanent: false,
+        direction: "center"
+      }).bindPopup(`
+        <div style="font-size:12px; line-height:1.4;">
+          <strong style="color:var(--color-accent-amber); font-size:13px;"><i class="fa-solid fa-camera-retro"></i> ${sec.name}</strong><br>
+          <p style="margin:4px 0; color:#ddd;">${sec.desc}</p>
+          <div style="font-size:11px; color:#888; margin-top:4px;">Фонд NARA RG-373 (Airborne Reconnaissance)</div>
+        </div>
+      `);
+      naraFootprintsMain.addLayer(rectMain);
+
+      const rectSplit = L.rectangle(sec.bounds, {
+        color: "#00e5ff",
+        weight: 1.5,
+        dashArray: "6, 6",
+        fillColor: "#00e5ff",
+        fillOpacity: 0.08
+      });
+      naraFootprintsSplit.addLayer(rectSplit);
+    });
+
     // Historical Overlay Layers Setup
     const overlays = layers.filter(l => l.isOverlay);
     overlays.forEach(l => {
-      let overlayMain = L.tileLayer(l.url, { attribution: l.attribution, opacity: l.opacity || 0.7, zIndex: 10 });
-      let overlaySplit = L.tileLayer(l.url, { opacity: l.opacity || 0.7, zIndex: 10 });
+      let overlayMain = L.tileLayer(l.url, {
+        attribution: l.attribution,
+        opacity: l.opacity || 0.85,
+        zIndex: 10,
+        className: l.className || "",
+        maxZoom: 18
+      });
+      let overlaySplit = L.tileLayer(l.url, {
+        opacity: l.opacity || 0.85,
+        zIndex: 10,
+        className: l.className || "",
+        maxZoom: 18
+      });
 
       overlayLayersMain[l.id] = overlayMain;
       overlayLayersSplit[l.id] = overlaySplit;
@@ -405,9 +470,10 @@ document.addEventListener("DOMContentLoaded", function() {
             <input type="checkbox" data-overlay="${l.id}">
             <span>${l.name}</span>
           </label>
+          ${l.description ? `<div class="layer-desc" style="font-size:11px; color:var(--text-dim); margin:2px 0 5px 22px; line-height:1.3;">${l.description}</div>` : ""}
           <div class="opacity-slider-wrapper" style="display:none;" id="opacityWrap_${l.id}">
             <span>Прозрачность:</span>
-            <input type="range" min="0" max="1" step="0.05" value="${l.opacity || 0.7}" data-slider="${l.id}">
+            <input type="range" min="0" max="1" step="0.05" value="${l.opacity || 0.85}" data-slider="${l.id}">
           </div>
         </div>
       `;
@@ -423,10 +489,18 @@ document.addEventListener("DOMContentLoaded", function() {
         if (e.target.checked) {
           overlayLayersMain[overlayId].addTo(mainMap);
           overlayLayersSplit[overlayId].addTo(splitMap);
+          if (overlayId === "aerophoto_1944") {
+            naraFootprintsMain.addTo(mainMap);
+            naraFootprintsSplit.addTo(splitMap);
+          }
           if (wrap) wrap.style.display = "flex";
         } else {
           mainMap.removeLayer(overlayLayersMain[overlayId]);
           splitMap.removeLayer(overlayLayersSplit[overlayId]);
+          if (overlayId === "aerophoto_1944") {
+            mainMap.removeLayer(naraFootprintsMain);
+            splitMap.removeLayer(naraFootprintsSplit);
+          }
           if (wrap) wrap.style.display = "none";
         }
       }

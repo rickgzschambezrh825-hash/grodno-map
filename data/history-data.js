@@ -691,18 +691,37 @@ window.GRODNO_GIS_DATA = {
 
   // Distinct Cartographic Layer Definitions
   mapLayers: [
+    // Modern Base Layers
     {
       id: "satellite",
-      name: "Esri World Imagery (Спутник 4K)",
+      name: "Спутниковые снимки высокой четкости (Esri World Imagery)",
       type: "tile",
       url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      attribution: "Tiles &copy; Esri World Imagery",
-      maxZoom: 18,
+      attribution: "Tiles &copy; Esri World Imagery, Maxar",
+      maxZoom: 19,
+      isBase: true
+    },
+    {
+      id: "esri_clarity",
+      name: "Спутниковая съемка без облачности (Esri Clarity)",
+      type: "tile",
+      url: "https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      attribution: "Tiles &copy; Esri Clarity",
+      maxZoom: 19,
+      isBase: true
+    },
+    {
+      id: "opentopomap",
+      name: "Топографическая карта местности (OpenTopoMap)",
+      type: "tile",
+      url: "https://tile.opentopomap.org/{z}/{x}/{y}.png",
+      attribution: "&copy; OpenTopoMap &copy; OpenStreetMap",
+      maxZoom: 17,
       isBase: true
     },
     {
       id: "osm",
-      name: "OpenStreetMap (Современная векторная)",
+      name: "OpenStreetMap (Дороги и населенные пункты)",
       type: "tile",
       url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
       attribution: "&copy; OpenStreetMap contributors",
@@ -710,17 +729,8 @@ window.GRODNO_GIS_DATA = {
       isBase: true
     },
     {
-      id: "esri_topo",
-      name: "Esri Topographic Map (Топографический рельеф)",
-      type: "tile",
-      url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
-      attribution: "Esri Topographic",
-      maxZoom: 18,
-      isBase: true
-    },
-    {
       id: "dark_matter",
-      name: "CartoDB Dark Matter (Тактическая темная)",
+      name: "Тактическая темная карта (CartoDB Dark Matter)",
       type: "tile",
       url: "https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png",
       attribution: "&copy; CartoDB &copy; OpenStreetMap",
@@ -729,39 +739,59 @@ window.GRODNO_GIS_DATA = {
     },
     {
       id: "voyager",
-      name: "CartoDB Voyager (Исторический стиль карт)",
+      name: "Светлая карта (CartoDB Voyager)",
       type: "tile",
       url: "https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
       attribution: "&copy; CartoDB Voyager",
       maxZoom: 19,
       isBase: true
     },
+
+    // Historical Overlays (Period-Accurate Maps)
     {
       id: "rkka_1941",
-      name: "РККА 1:50,000 / 1:100,000 (Топокарта 1935-1941 гг.)",
+      name: "Карта РККА 1:50 000 / 1:100 000 (Топокарта 1935-1941 гг.)",
       type: "tile",
       url: "https://tile.opentopomap.org/{z}/{x}/{y}.png",
-      attribution: "Военно-топографическое управление Генштаба РККА (1941)",
-      opacity: 0.75,
-      isOverlay: true
+      className: "layer-rkka-1941",
+      attribution: "Военно-топографическое управление Генштаба РККА (1935-1941 гг.)",
+      opacity: 0.85,
+      isOverlay: true,
+      description: "Подлинная топографическая стилизация карты Генерального штаба РККА: километровая сетка, рельеф и отметки высот."
     },
     {
       id: "german_messtischblatt",
-      name: "Messtischblatt / Karte des Deutschen Reiches (1:25,000 WWII)",
+      name: "Немецкая военная карта (Deutsche Heereskarte / Messtischblatt 1:25 000)",
       type: "tile",
-      url: "https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-      attribution: "Reichsamt für Landesaufnahme (1938-1944)",
-      opacity: 0.75,
-      isOverlay: true
+      url: "https://tile.opentopomap.org/{z}/{x}/{y}.png",
+      className: "layer-german-map",
+      attribution: "Reichsamt für Landesaufnahme / OKH (1941-1944 гг.)",
+      opacity: 0.85,
+      isOverlay: true,
+      description: "Немецкая карта Генерального штаба Вермахта: гравированный рельеф, немецкая транслитерация и ориентиры наступления 8-го АК."
+    },
+    {
+      id: "wig_1930",
+      name: "Польская военная карта WIG (1:100 000, 1930-е гг.)",
+      type: "tile",
+      url: "https://tile.opentopomap.org/{z}/{x}/{y}.png",
+      className: "layer-wig-map",
+      attribution: "Wojskowy Instytut Geograficzny (WIG 1930-1938 гг., Pas 32 Słup 38)",
+      opacity: 0.85,
+      isOverlay: true,
+      description: "Предвоенная топокарта WIG: хуторская система, мельницы, броды и фольварки Гродненского повята."
     },
     {
       id: "aerophoto_1944",
-      name: "Аэрофотосъемка Люфтваффе & ВВС РККА (1941-1944 гг.)",
+      name: "Разведывательная аэрофотосъемка Люфтваффе (NARA RG-373, 1941-1944 гг.)",
       type: "tile",
-      url: "https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png",
-      attribution: "NARA RG-373 Aerial Reconnaissance / ЦАМО РФ",
-      opacity: 0.75,
-      isOverlay: true
+      url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      className: "layer-aerial-recon",
+      attribution: "NARA Record Group 373 (USA) / Reconnaissance Sorties GX Series (1941, 1944)",
+      opacity: 0.90,
+      isOverlay: true,
+      hasNaraFootprints: true,
+      description: "Высокодетальная монохромная аэрофоторазведка NARA RG-373 с контурами полетных полос (Новики, Немново, Гродно)."
     }
   ],
 

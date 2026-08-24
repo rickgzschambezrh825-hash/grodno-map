@@ -52,10 +52,10 @@ BBOX_SOPOTKIN_NOVIKI = {
     "max_lon": 23.6800
 }
 
-# Primary and Fallback Tile URLs
+# Primary and Fallback Aerial Tile URLs (High-Resolution Panchromatic Orthophotography)
 TILE_SERVERS = [
-    "https://tile.opentopomap.org/{z}/{x}/{y}.png",
-    "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    "https://clarity.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
 ]
 
 HEADERS = {
