@@ -81,3 +81,22 @@
 * **Семантический запрос к источникам:** `C:\Users\john\.local\bin\nlm.exe query notebook ba6b3c9c-d793-4ce0-915f-595895a83e17 "<текст вопроса>"`
 * **Извлечение сырого текста источника:** `C:\Users\john\.local\bin\nlm.exe source content <source_id>`
 
+---
+
+## 6. Автономный MCP-сервер геопривязки аэрофотоснимков (`aerial-georeferencer-mcp`)
+
+Для автоматической привязки сырых архивных сканов аэрофотосъемки Люфтваффе 1941–1944 гг. (NARA RG 373) в систему интегрирован специализированный MCP-сервер.
+
+### Конфигурация MCP:
+* **Файл конфигурации:** `C:\Users\john\.gemini\antigravity\mcp_config.json`
+* **Имя сервера:** `aerial-georeferencer-mcp`
+* **Исполняемый скрипт:** `c:\Users\john\Documents\antigravity\map\mcp_server_georef.py`
+* **Ядро фотограмметрии:** `c:\Users\john\Documents\antigravity\map\georef_engine.py` (OpenCV SIFT, RANSAC, Rasterio, SciPy, PyProj).
+
+### Доступные MCP-инструменты:
+1. `auto_georeference_aerial` — сквозная привязка любого растрового файла в GeoTIFF (WGS84 EPSG:4326) и генерация файлов привязки World File (.wld / .pgw / .tfw).
+2. `detect_tie_points` — автоматический поиск парных точек связывания (Tie Points) между архивным снимком и эталоном через SIFT + RANSAC.
+3. `get_gro_registry_landmarks` — получение координат неизменных исторических реперов Гродненского района (ДОТы 68 УР, Форты, Шлюзы, Заставы).
+4. `assess_georef_accuracy` — валидация среднеквадратической ошибки (RMSE) и расчет пространственного разрешения пикселя на местности в метрах.
+
+

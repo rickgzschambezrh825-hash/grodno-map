@@ -1,0 +1,19 @@
+# Python & Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Heavy Archival & Aerial Output (Local only)
+nara_gx_grodno_archive/
+nara_gx_output/
+nara_gx_cache/
+grodno_aerial_output/
+*.tif
+*.tiff
+*.tar
+*.zip
+
+# Local OS files
+.DS_Store
+Thumbs.db
