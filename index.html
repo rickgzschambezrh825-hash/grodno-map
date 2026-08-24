@@ -173,8 +173,21 @@
           </div>
         </div>
 
-        <!-- Tab 3: Archival Sources Catalog -->
+        <!-- Tab 3: Archival Sources Catalog & Search Center -->
         <div id="tabSources" class="tab-pane">
+          <div class="archive-nav-header">
+            <div class="search-box" style="margin-bottom: 8px;">
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
+              <input type="text" id="archiveSearchInput" class="search-input" placeholder="Поиск фонда, дивизии, полка, командира...">
+              <button id="btnClearArchiveSearch" class="btn-clear-search" style="display:none;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="filter-pills" id="archivePeriodFilter" style="margin-bottom: 10px;">
+              <span class="pill active" data-archive-period="all">Все архивы</span>
+              <span class="pill" data-archive-period="1941">1941 год</span>
+              <span class="pill" data-archive-period="1944">1944 год</span>
+              <span class="pill" data-archive-period="foreign">NARA / Зарубежные</span>
+            </div>
+          </div>
           <div id="sourcesList" class="sources-directory">
             <!-- Sources Rendered Dynamically -->
           </div>

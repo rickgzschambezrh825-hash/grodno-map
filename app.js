@@ -21,6 +21,9 @@ document.addEventListener("DOMContentLoaded", function() {
     coordsFormat: "DD", // "DD" or "DMS"
     isPickingCoords: false,
     pickCoordsCallback: null,
+    archiveSearchQuery: "",
+    archivePeriod: "all",
+    activeArchiveId: null,
     gps: {
       watchId: null,
       isLiveTracking: false,
@@ -64,6 +67,9 @@ document.addEventListener("DOMContentLoaded", function() {
     pointsList: document.getElementById("pointsList"),
     chronologyList: document.getElementById("chronologyList"),
     sourcesList: document.getElementById("sourcesList"),
+    archiveSearchInput: document.getElementById("archiveSearchInput"),
+    btnClearArchiveSearch: document.getElementById("btnClearArchiveSearch"),
+    archivePeriodFilter: document.getElementById("archivePeriodFilter"),
     memoirsList: document.getElementById("memoirsList"),
     photoList: document.getElementById("photoList"),
     statMemorialsCount: document.getElementById("statMemorialsCount"),
@@ -737,23 +743,152 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   /* ==========================================================================
-     Archival Sources Catalog Tab
+     Archival Sources Catalog & Search Center Tab
      ========================================================================== */
-  function renderArchivalSources() {
-    const sources = state.data.archivalSources || [];
-    let html = "";
+  function getPointsMatchingArchiveSource(s) {
+    const allPts = getAllPoints();
+    if (!s.matchKeywords || s.matchKeywords.length === 0) return [];
+    return allPts.filter(pt => {
+      const searchStr = `${pt.name} ${pt.unit || ""} ${pt.tsamoRef || ""} ${pt.description || ""}`.toLowerCase();
+      return s.matchKeywords.some(kw => searchStr.includes(kw.toLowerCase()));
+    });
+  }
 
+  function getPointsDeclension(n) {
+    if (n % 10 === 1 && n % 100 !== 11) return "объект";
+    if ([2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)) return "объекта";
+    return "объектов";
+  }
+
+  function renderArchivalSources() {
+    if (!el.sourcesList) return;
+    let sources = state.data.archivalSources || [];
+
+    // Filter by period
+    if (state.archivePeriod && state.archivePeriod !== "all") {
+      sources = sources.filter(s => s.period === state.archivePeriod || s.period === "1941/1944");
+    }
+
+    // Filter by search query
+    if (state.archiveSearchQuery && state.archiveSearchQuery.trim() !== "") {
+      const q = state.archiveSearchQuery.toLowerCase().trim();
+      sources = sources.filter(s => {
+        const text = `${s.code} ${s.name} ${s.commander || ""} ${s.role || ""} ${s.sector || ""} ${s.summary || ""} ${s.fondDetails || ""}`.toLowerCase();
+        return text.includes(q);
+      });
+    }
+
+    if (sources.length === 0) {
+      el.sourcesList.innerHTML = `
+        <div style="text-align:center; padding: 30px 10px; color: var(--text-muted);">
+          <i class="fa-solid fa-folder-open" style="font-size:32px; margin-bottom:8px;"></i>
+          <p>Архивных фондов по вашему запросу не найдено.</p>
+        </div>
+      `;
+      return;
+    }
+
+    let html = "";
     sources.forEach(s => {
+      const matchingPts = getPointsMatchingArchiveSource(s);
+      const isFiltered = state.activeArchiveId === s.id;
+      const periodClass = s.period === "1944" ? "period-1944" : (s.period === "foreign" ? "period-foreign" : "");
+
       html += `
-        <div class="source-card">
-          <span class="source-code">${s.code}</span>
+        <div class="source-card ${periodClass} ${isFiltered ? "active-filtered" : ""}" data-id="${s.id}">
+          <div class="source-card-top">
+            <span class="source-code">${s.code}</span>
+            <span class="source-points-count-badge">
+              <i class="fa-solid fa-location-crosshairs"></i> ${matchingPts.length} ${getPointsDeclension(matchingPts.length)} на карте
+            </span>
+          </div>
           <div class="source-name">${s.name}</div>
-          <div class="source-details">${s.details}</div>
+          
+          <div class="source-meta-block">
+            ${s.commander ? `<div class="source-meta-item"><i class="fa-solid fa-user-shield"></i> <span><strong>Командир:</strong> ${s.commander}</span></div>` : ""}
+            ${s.role ? `<div class="source-meta-item"><i class="fa-solid fa-shield-halved"></i> <span><strong>Роль:</strong> ${s.role}</span></div>` : ""}
+            ${s.sector ? `<div class="source-meta-item"><i class="fa-solid fa-map-location-dot"></i> <span><strong>Сектор:</strong> ${s.sector}</span></div>` : ""}
+          </div>
+
+          <div class="source-summary-text">${s.summary || s.details || ""}</div>
+          
+          ${s.fondDetails ? `
+            <div class="source-fond-details">
+              <i class="fa-solid fa-box-archive" style="color:var(--color-accent-amber); margin-right:4px;"></i>
+              <strong>Шифр ЦАМО/NARA:</strong> ${s.fondDetails}
+            </div>
+          ` : ""}
+
+          <div class="source-actions-bar">
+            ${matchingPts.length > 0 ? `
+              <button class="btn-source-action btn-source-map" data-id="${s.id}" title="Показать все объекты этого соединения на карте">
+                <i class="fa-solid fa-map-pin"></i> На карту (${matchingPts.length})
+              </button>
+            ` : ""}
+            ${s.pamyatNarodaUrl ? `
+              <a class="btn-source-action btn-source-pamyat" href="${s.pamyatNarodaUrl}" target="_blank" rel="noopener" title="Открыть дела и схемы в ЦАМО на портале Память Народа">
+                <i class="fa-solid fa-magnifying-glass"></i> Память Народа
+              </a>
+            ` : ""}
+            ${s.obdMemorialUrl ? `
+              <a class="btn-source-action btn-source-obd" href="${s.obdMemorialUrl}" target="_blank" rel="noopener" title="Списки потерь и захоронений в ОБД Мемориал">
+                <i class="fa-solid fa-book-skull"></i> ОБД Мемориал
+              </a>
+            ` : ""}
+            ${s.naraUrl ? `
+              <a class="btn-source-action btn-source-nara" href="${s.naraUrl}" target="_blank" rel="noopener" title="Архив NARA (США)">
+                <i class="fa-solid fa-globe"></i> NARA
+              </a>
+            ` : ""}
+          </div>
         </div>
       `;
     });
 
     el.sourcesList.innerHTML = html;
+
+    // Attach Click Handlers to Cards and Map Action Buttons
+    el.sourcesList.querySelectorAll(".btn-source-map, .source-card").forEach(item => {
+      item.addEventListener("click", function(e) {
+        if (e.target.closest("a")) return; // Don't trigger if clicked external link
+        const srcId = this.dataset.id || this.closest(".source-card").dataset.id;
+        const source = (state.data.archivalSources || []).find(s => s.id === srcId);
+        if (!source) return;
+
+        const matchingPts = getPointsMatchingArchiveSource(source);
+        if (matchingPts.length > 0) {
+          state.activeArchiveId = srcId;
+          // Apply search filter so points tab reflects this unit
+          state.activePeriod = "all";
+          state.activeCategory = "all";
+          state.searchQuery = source.matchKeywords[0] || source.name;
+          if (el.searchInput) el.searchInput.value = state.searchQuery;
+          if (el.btnClearSearch) el.btnClearSearch.style.display = "block";
+
+          initMarkers();
+          renderPointsList();
+          renderArchivalSources();
+
+          // Fit map bounds to points
+          const bounds = L.latLngBounds(matchingPts.map(p => [p.lat, p.lng]));
+          mainMap.fitBounds(bounds, { padding: [60, 60], maxZoom: 14 });
+
+          // Mobile UX: if on mobile screen, close drawer to show map immediately
+          if (window.innerWidth <= 768) {
+            el.sidebar.classList.add("collapsed");
+            if (el.dockBtnMap) el.dockBtnMap.click();
+          } else {
+            // On desktop: switch to points tab so user sees the list of matching points
+            const tabPointsBtn = document.querySelector('.tab-btn[data-tab="tabPoints"]');
+            if (tabPointsBtn) tabPointsBtn.click();
+          }
+
+          showToast(`Отображено ${matchingPts.length} ${getPointsDeclension(matchingPts.length)} соединения «${source.name}»`, "success");
+        } else {
+          showToast(`Документальный фонд «${source.name}» не имеет прямых точечных привязок`, "info");
+        }
+      });
+    });
   }
 
   /* ==========================================================================
@@ -1547,6 +1682,35 @@ document.addEventListener("DOMContentLoaded", function() {
       initMarkers();
       renderPointsList();
     });
+
+    // Archival Center Search & Period Filters
+    if (el.archiveSearchInput) {
+      el.archiveSearchInput.addEventListener("input", function() {
+        state.archiveSearchQuery = this.value;
+        if (el.btnClearArchiveSearch) el.btnClearArchiveSearch.style.display = this.value ? "block" : "none";
+        renderArchivalSources();
+      });
+    }
+
+    if (el.btnClearArchiveSearch) {
+      el.btnClearArchiveSearch.addEventListener("click", function() {
+        if (el.archiveSearchInput) el.archiveSearchInput.value = "";
+        state.archiveSearchQuery = "";
+        this.style.display = "none";
+        renderArchivalSources();
+      });
+    }
+
+    if (el.archivePeriodFilter) {
+      el.archivePeriodFilter.querySelectorAll(".pill").forEach(pill => {
+        pill.addEventListener("click", function() {
+          el.archivePeriodFilter.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+          this.classList.add("active");
+          state.archivePeriod = this.dataset.archivePeriod;
+          renderArchivalSources();
+        });
+      });
+    }
 
     el.periodFilter.querySelectorAll(".pill").forEach(pill => {
       pill.addEventListener("click", function() {
