@@ -1211,6 +1211,203 @@ kbd {
   text-align: center;
 }
 
+/* GPS Tactical Navigation HUD & Compass Dial */
+.gps-nav-panel {
+  width: 320px;
+  background: rgba(18, 21, 24, 0.96);
+  border: 1px solid var(--color-accent-green);
+  box-shadow: 0 0 20px rgba(46, 204, 113, 0.25);
+  top: 16px;
+  right: 16px;
+}
+
+.gps-nav-header {
+  padding: 10px 14px;
+  background: rgba(46, 204, 113, 0.12);
+  border-bottom: 1px solid rgba(46, 204, 113, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-accent-green);
+}
+.gps-nav-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gps-pulse-icon {
+  animation: pulse-ring 1.5s infinite;
+}
+
+.gps-nav-body {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gps-compass-block {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.compass-dial {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  border: 2px solid var(--border-highlight);
+  background: radial-gradient(circle, rgba(26, 30, 36, 0.9) 0%, rgba(11, 13, 14, 0.95) 100%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8), 0 0 8px rgba(52, 152, 219, 0.3);
+  flex-shrink: 0;
+}
+
+.compass-needle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-accent-amber);
+  font-size: 24px;
+  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+  transform-origin: center center;
+  filter: drop-shadow(0 0 4px rgba(243, 156, 18, 0.8));
+}
+
+.compass-cardinal {
+  position: absolute;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.compass-n { top: 2px; color: var(--color-accent-red); }
+.compass-e { right: 4px; }
+.compass-s { bottom: 2px; }
+.compass-w { left: 4px; }
+
+.gps-bearing-metrics {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+}
+.metric-label {
+  color: var(--text-muted);
+}
+.metric-val {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-main);
+}
+.metric-val.highlight {
+  color: var(--color-accent-green);
+  font-size: 15px;
+}
+
+.gps-nav-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.3fr;
+  gap: 6px;
+}
+
+/* GPS Track Recorder Panel */
+.track-recorder-panel {
+  width: 280px;
+  top: 16px;
+  left: 16px;
+  z-index: 650;
+  border-left: 3px solid var(--color-accent-red);
+}
+.track-metrics-grid {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  margin-bottom: 10px;
+  color: var(--text-main);
+}
+.track-buttons-row {
+  display: flex;
+  gap: 6px;
+}
+
+/* Mobile Bottom Tactical Dock */
+.mobile-bottom-dock {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: rgba(14, 17, 20, 0.96);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border-highlight);
+  z-index: 1500;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  align-items: center;
+  justify-content: space-around;
+}
+
+.mobile-dock-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  padding: 6px 12px;
+  transition: all var(--transition-fast);
+  flex: 1;
+}
+.mobile-dock-btn i {
+  font-size: 16px;
+}
+.mobile-dock-btn.active {
+  color: var(--color-accent-green);
+}
+.mobile-dock-btn:active {
+  transform: scale(0.92);
+}
+.dock-badge {
+  position: absolute;
+  top: 2px;
+  right: 20%;
+  background: var(--color-accent-amber);
+  color: #000;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 8px;
+}
+
+.sidebar-mobile-header {
+  display: none;
+}
+
 /* Print Only Stylesheet (Field Expedition Tablet) */
 .print-only-section {
   display: none;
@@ -1222,7 +1419,7 @@ kbd {
     color: #000000 !important;
     font-size: 11pt !important;
   }
-  .app-header, .app-workspace, .modal-backdrop, .toast-container, .map-hud-overlay {
+  .app-header, .app-workspace, .modal-backdrop, .toast-container, .map-hud-overlay, .mobile-bottom-dock {
     display: none !important;
   }
   .print-only-section {
@@ -1245,11 +1442,146 @@ kbd {
   }
 }
 
-@media (max-width: 900px) {
-  .header-metrics { display: none; }
-  .app-sidebar { width: 100%; position: absolute; top: 0; bottom: 0; }
-  .brand-title h1 { font-size: 13px; }
-  .dossier-grid { grid-template-columns: 1fr; }
-  .btn-group-grid { grid-template-columns: 1fr; }
-  .coord-helper-buttons { flex-direction: column; }
+/* Responsive Mobile Rules (Smartphones & Tablets in Field) */
+@media (max-width: 768px) {
+  .header-metrics {
+    display: none;
+  }
+  
+  .app-header {
+    height: 48px;
+    padding: 0 10px;
+  }
+  .brand-title h1 {
+    font-size: 12px;
+  }
+  .brand-subtitle {
+    display: none;
+  }
+  .header-actions .btn:not(.btn-icon) {
+    display: none; /* Hide large text buttons from top header; access via bottom dock */
+  }
+
+  .mobile-bottom-dock {
+    display: flex;
+  }
+
+  .app-workspace {
+    margin-bottom: calc(56px + env(safe-area-inset-bottom, 0));
+  }
+
+  /* Slide-over Drawer for Sidebar on Mobile */
+  .app-sidebar {
+    position: fixed;
+    top: 48px;
+    bottom: calc(56px + env(safe-area-inset-bottom, 0));
+    left: 0;
+    width: 100% !important;
+    max-width: 100%;
+    z-index: 1200;
+    transform: translateX(0);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+  }
+  .app-sidebar.collapsed {
+    transform: translateX(-100%);
+    width: 100% !important;
+  }
+
+  .sidebar-mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .sidebar-mobile-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--border-highlight);
+    border-radius: 2px;
+    margin: 0 auto;
+  }
+  .btn-sidebar-close-mobile {
+    background: none;
+    border: none;
+    color: var(--color-accent-blue);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .gps-nav-panel {
+    top: auto;
+    bottom: 70px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+  }
+  .track-recorder-panel {
+    top: 56px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+  }
+
+  .map-hud-overlay {
+    bottom: 10px;
+    right: 10px;
+    left: 10px;
+    justify-content: space-between;
+  }
+  .hud-coords {
+    font-size: 11px;
+    padding: 5px 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 220px;
+  }
+
+  /* Split badges on mobile */
+  .split-side-badge {
+    font-size: 9px;
+    padding: 4px 8px;
+    top: 8px;
+  }
+  .split-badge-left { left: 8px; }
+  .split-badge-right { right: 8px; }
+
+  /* Modals on Mobile */
+  .modal-dialog {
+    max-height: 85vh;
+    margin: auto 6px;
+  }
+  .modal-header {
+    padding: 12px 14px;
+  }
+  .modal-body {
+    padding: 14px;
+  }
+  .modal-footer {
+    padding: 10px 14px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .modal-footer .btn {
+    flex: 1;
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+  .dossier-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  .coord-helper-buttons {
+    flex-direction: column;
+  }
 }
+

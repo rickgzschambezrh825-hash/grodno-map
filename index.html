@@ -2,7 +2,10 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#121518">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="description" content="Геоинформационная система Гродненской поисковой экспедиции: карты боев 1941 и 1944 годов, архивные документы ЦАМО, геолокации неучтенных захоронений и экспорт GPX/KML">
   <title>ГИС «ПОИСК-ГРОДНО 1941/1944» | Военно-картографический геопортал</title>
 
@@ -57,6 +60,9 @@
       <div id="offlineIndicator" class="offline-badge" style="display:none;" title="Приложение работает в автономном офлайн-режиме">
         <i class="fa-solid fa-plane"></i> <span>ОФЛАЙН</span>
       </div>
+      <button id="btnGpsTrackRecorder" class="btn btn-icon btn-dark" title="Запись полевого GPS-трека">
+        <i class="fa-solid fa-route"></i>
+      </button>
       <button id="btnSplitScreen" class="btn btn-tactical" title="Переключить режим сравнения «Тогда и Сейчас» (Горячая клавиша: S)">
         <i class="fa-solid fa-sliders"></i>
         <span>Режим «Было - Стало»</span>
@@ -86,6 +92,14 @@
   <div class="app-workspace">
     <!-- Left Interactive Control Sidebar -->
     <aside id="sidebar" class="app-sidebar">
+      <!-- Mobile Drawer Handle & Back Button -->
+      <div class="sidebar-mobile-header" id="sidebarMobileHeader">
+        <div class="sidebar-mobile-handle"></div>
+        <button id="btnSidebarCloseMobile" class="btn-sidebar-close-mobile">
+          <i class="fa-solid fa-chevron-left"></i> Назад к карте
+        </button>
+      </div>
+
       <!-- Search & Filters -->
       <div class="sidebar-search">
         <div class="search-input-wrapper">
@@ -252,14 +266,91 @@
         </div>
       </div>
 
+      <!-- Floating Tactical GPS Navigation & Compass HUD -->
+      <div id="gpsNavHud" class="floating-panel gps-nav-panel" style="display:none;">
+        <div class="gps-nav-header">
+          <div class="gps-nav-title">
+            <i class="fa-solid fa-location-arrow gps-pulse-icon"></i>
+            <span id="gpsNavTargetName">Наведение на объект</span>
+          </div>
+          <button id="btnStopGpsNav" class="btn-close-sm" title="Завершить наведение"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="gps-nav-body">
+          <div class="gps-compass-block">
+            <div class="compass-dial" id="compassDial">
+              <div class="compass-needle" id="compassNeedle">
+                <i class="fa-solid fa-location-arrow"></i>
+              </div>
+              <div class="compass-cardinal compass-n">С</div>
+              <div class="compass-cardinal compass-e">В</div>
+              <div class="compass-cardinal compass-s">Ю</div>
+              <div class="compass-cardinal compass-w">З</div>
+            </div>
+            <div class="gps-bearing-metrics">
+              <div class="metric-row">
+                <span class="metric-label">Дистанция:</span>
+                <span class="metric-val highlight" id="gpsDistanceVal">-- м</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Азимут:</span>
+                <span class="metric-val" id="gpsBearingVal">--°</span>
+              </div>
+              <div class="metric-row">
+                <span class="metric-label">Точность:</span>
+                <span class="metric-val" id="gpsAccuracyVal">-- м</span>
+              </div>
+            </div>
+          </div>
+          <div class="gps-nav-actions">
+            <button id="btnCenterUserGps" class="btn btn-sm btn-tactical" title="Центрировать на мне">
+              <i class="fa-solid fa-crosshairs"></i> Я
+            </button>
+            <button id="btnCenterTargetGps" class="btn btn-sm btn-secondary" title="Центрировать на цели">
+              <i class="fa-solid fa-bullseye"></i> Цель
+            </button>
+            <button id="btnToggleFollowMode" class="btn btn-sm btn-success" title="Режим автоследования">
+              <i class="fa-solid fa-person-walking"></i> <span id="followModeLabel">Слежение</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- GPS Track Recorder Toolbar -->
+      <div id="trackRecorderHud" class="floating-panel track-recorder-panel" style="display:none;">
+        <div class="panel-header">
+          <span><i class="fa-solid fa-route"></i> Запись полевого трека</span>
+          <button id="btnCloseTrackRecorder" class="btn-close-sm"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="panel-body">
+          <div class="track-metrics-grid">
+            <div>Длина: <b id="trackLengthVal">0 м</b></div>
+            <div>Точек: <b id="trackPointsCountVal">0</b></div>
+          </div>
+          <div class="track-buttons-row">
+            <button id="btnToggleRecordTrack" class="btn btn-sm btn-danger">
+              <i class="fa-solid fa-circle-dot"></i> <span id="recordTrackBtnLabel">Старт</span>
+            </button>
+            <button id="btnExportRecordedTrack" class="btn btn-sm btn-primary" style="display:none;">
+              <i class="fa-solid fa-download"></i> GPX
+            </button>
+            <button id="btnClearRecordedTrack" class="btn btn-sm btn-secondary" style="display:none;">
+              Сброс
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Current Coordinates & Scale Bar Overlay -->
       <div class="map-hud-overlay">
         <div class="hud-coords" id="hudCoords">
           <i class="fa-solid fa-location-crosshairs"></i> WGS84: 53.8306° N, 23.6444° E
         </div>
         <div class="hud-locate">
-          <button id="btnLocateMe" class="btn btn-icon btn-dark" title="Мое местоположение на GPS">
+          <button id="btnLocateMe" class="btn btn-icon btn-dark" title="Определить мое местоположение (GPS)">
             <i class="fa-solid fa-crosshairs"></i>
+          </button>
+          <button id="btnLiveGpsToggle" class="btn btn-icon btn-tactical" title="Включить постоянное GPS слежение">
+            <i class="fa-solid fa-location-arrow"></i>
           </button>
         </div>
       </div>
@@ -339,14 +430,17 @@
           </div>
         </div>
         <div class="modal-footer">
+          <button id="btnDossierNavigateGPS" class="btn btn-tactical" title="Включить наведение по GPS компасу">
+            <i class="fa-solid fa-location-arrow"></i> Вести к цели (GPS)
+          </button>
           <button id="btnDossierPrint" class="btn btn-secondary" title="Распечатать досье объекта">
             <i class="fa-solid fa-print"></i> Печать
           </button>
           <button id="btnDossierExportGPX" class="btn btn-primary">
-            <i class="fa-solid fa-file-export"></i> Экспортировать в GPX
+            <i class="fa-solid fa-file-export"></i> GPX
           </button>
           <button id="btnDossierFocusMap" class="btn btn-success">
-            <i class="fa-solid fa-location-dot"></i> Показать на карте
+            <i class="fa-solid fa-location-dot"></i> На карте
           </button>
           <button class="btn btn-secondary" data-close="dossierModal">Закрыть</button>
         </div>
@@ -549,6 +643,31 @@
 
   <!-- Printable Field Briefing Sheet Container -->
   <div id="printSection" class="print-only-section"></div>
+
+  <!-- Mobile Bottom Tactical Navigation Dock (Visible on touch & mobile screens) -->
+  <nav class="mobile-bottom-dock" id="mobileBottomDock">
+    <button class="mobile-dock-btn active" data-dock="map" id="dockBtnMap">
+      <i class="fa-solid fa-map-location-dot"></i>
+      <span>Карта</span>
+    </button>
+    <button class="mobile-dock-btn" data-dock="points" id="dockBtnPoints">
+      <i class="fa-solid fa-list-check"></i>
+      <span>Точки</span>
+      <span class="dock-badge" id="dockPointsBadge">35</span>
+    </button>
+    <button class="mobile-dock-btn" data-dock="layers" id="dockBtnLayers">
+      <i class="fa-solid fa-layer-group"></i>
+      <span>Слои</span>
+    </button>
+    <button class="mobile-dock-btn" data-dock="split" id="dockBtnSplit">
+      <i class="fa-solid fa-sliders"></i>
+      <span>Сравнить</span>
+    </button>
+    <button class="mobile-dock-btn" data-dock="gps" id="dockBtnGPS">
+      <i class="fa-solid fa-crosshairs"></i>
+      <span>GPS</span>
+    </button>
+  </nav>
 
   <!-- External JavaScript Libraries -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>

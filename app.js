@@ -20,7 +20,21 @@ document.addEventListener("DOMContentLoaded", function() {
     userLocationMarker: null,
     coordsFormat: "DD", // "DD" or "DMS"
     isPickingCoords: false,
-    pickCoordsCallback: null
+    pickCoordsCallback: null,
+    gps: {
+      watchId: null,
+      isLiveTracking: false,
+      followUser: true,
+      userLatLng: null,
+      accuracy: null,
+      heading: null,
+      accuracyCircle: null,
+      navTarget: null,
+      navPolyline: null,
+      isRecordingTrack: false,
+      recordedTrackPoints: [],
+      recordedTrackPolyline: null
+    }
   };
 
   // DOM Elements
@@ -38,6 +52,8 @@ document.addEventListener("DOMContentLoaded", function() {
     btnMeasure: document.getElementById("btnMeasure"),
     btnHelp: document.getElementById("btnHelp"),
     btnLocateMe: document.getElementById("btnLocateMe"),
+    btnLiveGpsToggle: document.getElementById("btnLiveGpsToggle"),
+    btnGpsTrackRecorder: document.getElementById("btnGpsTrackRecorder"),
     searchInput: document.getElementById("searchInput"),
     btnClearSearch: document.getElementById("btnClearSearch"),
     categoryFilter: document.getElementById("categoryFilter"),
@@ -62,6 +78,39 @@ document.addEventListener("DOMContentLoaded", function() {
     offlineIndicator: document.getElementById("offlineIndicator"),
     toastContainer: document.getElementById("toastContainer"),
     printSection: document.getElementById("printSection"),
+    
+    // GPS Navigation HUD Elements
+    gpsNavHud: document.getElementById("gpsNavHud"),
+    gpsNavTargetName: document.getElementById("gpsNavTargetName"),
+    btnStopGpsNav: document.getElementById("btnStopGpsNav"),
+    compassNeedle: document.getElementById("compassNeedle"),
+    gpsDistanceVal: document.getElementById("gpsDistanceVal"),
+    gpsBearingVal: document.getElementById("gpsBearingVal"),
+    gpsAccuracyVal: document.getElementById("gpsAccuracyVal"),
+    btnCenterUserGps: document.getElementById("btnCenterUserGps"),
+    btnCenterTargetGps: document.getElementById("btnCenterTargetGps"),
+    btnToggleFollowMode: document.getElementById("btnToggleFollowMode"),
+    followModeLabel: document.getElementById("followModeLabel"),
+    
+    // GPS Track Recorder HUD Elements
+    trackRecorderHud: document.getElementById("trackRecorderHud"),
+    btnCloseTrackRecorder: document.getElementById("btnCloseTrackRecorder"),
+    trackLengthVal: document.getElementById("trackLengthVal"),
+    trackPointsCountVal: document.getElementById("trackPointsCountVal"),
+    btnToggleRecordTrack: document.getElementById("btnToggleRecordTrack"),
+    recordTrackBtnLabel: document.getElementById("recordTrackBtnLabel"),
+    btnExportRecordedTrack: document.getElementById("btnExportRecordedTrack"),
+    btnClearRecordedTrack: document.getElementById("btnClearRecordedTrack"),
+    
+    // Mobile Bottom Navigation Dock Elements
+    btnSidebarCloseMobile: document.getElementById("btnSidebarCloseMobile"),
+    mobileBottomDock: document.getElementById("mobileBottomDock"),
+    dockBtnMap: document.getElementById("dockBtnMap"),
+    dockBtnPoints: document.getElementById("dockBtnPoints"),
+    dockBtnLayers: document.getElementById("dockBtnLayers"),
+    dockBtnSplit: document.getElementById("dockBtnSplit"),
+    dockBtnGPS: document.getElementById("dockBtnGPS"),
+    dockPointsBadge: document.getElementById("dockPointsBadge"),
     
     // Modals
     dossierModal: document.getElementById("dossierModal"),
@@ -93,6 +142,7 @@ document.addEventListener("DOMContentLoaded", function() {
     btnDossierPrint: document.getElementById("btnDossierPrint"),
     btnDossierExportGPX: document.getElementById("btnDossierExportGPX"),
     btnDossierFocusMap: document.getElementById("btnDossierFocusMap"),
+    btnDossierNavigateGPS: document.getElementById("btnDossierNavigateGPS"),
     linkNavYandex: document.getElementById("linkNavYandex"),
     linkNavGoogle: document.getElementById("linkNavGoogle"),
     linkNavOSM: document.getElementById("linkNavOSM"),
@@ -129,6 +179,8 @@ document.addEventListener("DOMContentLoaded", function() {
     initMarkers();
     initVectorLayers();
     initUIEvents();
+    initMobileDock();
+    initDeviceOrientation();
     renderPointsList();
     renderChronology();
     renderArchivalSources();
@@ -520,6 +572,7 @@ document.addEventListener("DOMContentLoaded", function() {
     el.pointsTabCount.textContent = filteredCount;
     if (el.filteredPointsCount) el.filteredPointsCount.textContent = filteredCount;
     if (el.totalPointsCount) el.totalPointsCount.textContent = totalCount;
+    if (el.dockPointsBadge) el.dockPointsBadge.textContent = filteredCount;
 
     if (el.btnResetFilters) {
       const isFiltered = state.activePeriod !== "all" || state.activeCategory !== "all" || state.searchQuery.trim() !== "";
@@ -567,6 +620,9 @@ document.addEventListener("DOMContentLoaded", function() {
           <div class="point-card-actions">
             <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">${pt.lat.toFixed(4)}°, ${pt.lng.toFixed(4)}°</span>
             <div style="display:flex; gap:6px; align-items:center;">
+              <button class="btn btn-sm btn-success btn-nav-target" data-id="${pt.id}" title="Вести к цели (GPS компас)">
+                <i class="fa-solid fa-location-arrow"></i>
+              </button>
               ${pt.isUserCreated ? `
                 <button class="btn btn-danger-sm btn-delete-user-point" data-id="${pt.id}" title="Удалить полевую точку">
                   <i class="fa-solid fa-trash"></i>
@@ -601,6 +657,21 @@ document.addEventListener("DOMContentLoaded", function() {
         const ptId = this.dataset.id;
         const pt = getAllPoints().find(p => p.id === ptId);
         if (pt) openDossierModal(pt);
+      });
+    });
+
+    el.pointsList.querySelectorAll(".btn-nav-target").forEach(btn => {
+      btn.addEventListener("click", function(e) {
+        e.stopPropagation();
+        const ptId = this.dataset.id;
+        const pt = getAllPoints().find(p => p.id === ptId);
+        if (pt) {
+          startNavigatingToPoint(pt);
+          if (window.innerWidth <= 768) {
+            el.sidebar.classList.add("collapsed");
+            if (el.dockBtnMap) el.dockBtnMap.click();
+          }
+        }
       });
     });
 
@@ -880,38 +951,360 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   /* ==========================================================================
-     GPS Geolocation Handler
+     GPS Geodesic Formulas & Tactical Navigation Math
      ========================================================================== */
+  function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371000; // meters
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  function calculateBearing(lat1, lon1, lat2, lon2) {
+    const y = Math.sin((lon2 - lon1) * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180);
+    const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+              Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos((lon2 - lon1) * Math.PI / 180);
+    const brng = Math.atan2(y, x) * 180 / Math.PI;
+    return (brng + 360) % 360;
+  }
+
+  function getCardinalDirection(deg) {
+    const directions = ["С", "СВ", "В", "ЮВ", "Ю", "ЮЗ", "З", "СЗ"];
+    return directions[Math.round(deg / 45) % 8];
+  }
+
+  /* ==========================================================================
+     Tactical GPS Live Tracking & Geolocation Engine
+     ========================================================================== */
+  function startLiveGpsTracking(follow = true) {
+    if (!navigator.geolocation) {
+      showToast("Геолокация не поддерживается вашим устройством", "error");
+      return;
+    }
+
+    state.gps.followUser = follow;
+    state.gps.isLiveTracking = true;
+    if (el.btnLiveGpsToggle) el.btnLiveGpsToggle.classList.add("active");
+    if (el.dockBtnGPS) el.dockBtnGPS.classList.add("active");
+
+    if (state.gps.watchId !== null) {
+      navigator.geolocation.clearWatch(state.gps.watchId);
+    }
+
+    showToast("GPS слежение активировано (Высокая точность)", "info");
+
+    state.gps.watchId = navigator.geolocation.watchPosition(
+      onGpsSuccess,
+      onGpsError,
+      { enableHighAccuracy: true, maximumAge: 2000, timeout: 15000 }
+    );
+  }
+
+  function stopLiveGpsTracking() {
+    if (state.gps.watchId !== null) {
+      navigator.geolocation.clearWatch(state.gps.watchId);
+      state.gps.watchId = null;
+    }
+    state.gps.isLiveTracking = false;
+    if (el.btnLiveGpsToggle) el.btnLiveGpsToggle.classList.remove("active");
+    if (el.dockBtnGPS) el.dockBtnGPS.classList.remove("active");
+    if (state.gps.accuracyCircle) {
+      mainMap.removeLayer(state.gps.accuracyCircle);
+      state.gps.accuracyCircle = null;
+    }
+    showToast("GPS слежение отключено", "info");
+  }
+
+  function toggleLiveGps() {
+    if (state.gps.isLiveTracking) {
+      stopLiveGpsTracking();
+    } else {
+      startLiveGpsTracking(true);
+    }
+  }
+
+  function onGpsSuccess(pos) {
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    const accuracy = pos.coords.accuracy || 10;
+    const heading = pos.coords.heading;
+
+    state.gps.userLatLng = [lat, lng];
+    state.gps.accuracy = accuracy;
+    state.gps.heading = heading;
+
+    // Update user marker
+    if (!state.userLocationMarker) {
+      const iconHtml = `<div class="tactical-leaflet-marker marker-pulse" style="background:#3498db; width:26px; height:26px;"><i class="fa-solid fa-person-walking"></i></div>`;
+      const icon = L.divIcon({ html: iconHtml, iconSize: [26, 26], iconAnchor: [13, 13] });
+      state.userLocationMarker = L.marker([lat, lng], { icon: icon }).addTo(mainMap);
+      state.userLocationMarker.bindTooltip("Вы здесь (GPS)").openTooltip();
+    } else {
+      state.userLocationMarker.setLatLng([lat, lng]);
+    }
+
+    // Update accuracy circle
+    if (!state.gps.accuracyCircle) {
+      state.gps.accuracyCircle = L.circle([lat, lng], {
+        radius: accuracy,
+        color: "#3498db",
+        weight: 1,
+        fillColor: "#3498db",
+        fillOpacity: 0.15
+      }).addTo(mainMap);
+    } else {
+      state.gps.accuracyCircle.setLatLng([lat, lng]);
+      state.gps.accuracyCircle.setRadius(accuracy);
+    }
+
+    // Update HUD coordinates
+    if (el.hudCoords) {
+      el.hudCoords.innerHTML = `<i class="fa-solid fa-crosshairs" style="color:var(--color-accent-green);"></i> GPS: ${lat.toFixed(5)}°N, ${lng.toFixed(5)}°E (±${Math.round(accuracy)}м)`;
+    }
+
+    // If follow mode is on, pan map
+    if (state.gps.followUser) {
+      mainMap.setView([lat, lng], Math.max(mainMap.getZoom(), 15), { animate: true });
+    }
+
+    // Update Active Navigation to Target
+    if (state.gps.navTarget) {
+      updateNavigationHUD(lat, lng, accuracy);
+    }
+
+    // Update Track Recorder
+    if (state.gps.isRecordingTrack) {
+      addTrackPoint(lat, lng);
+    }
+  }
+
+  function onGpsError(err) {
+    console.warn("GPS tracking error:", err);
+    showToast("Слабый сигнал GPS / Поиск спутников...", "warning");
+  }
+
   function locateUserOnMap() {
     if (!navigator.geolocation) {
       showToast("Геолокация не поддерживается вашим браузером", "error");
       return;
     }
 
-    showToast("Определение GPS координат...", "info");
+    showToast("Определение координат по спутникам GPS...", "info");
 
     navigator.geolocation.getCurrentPosition(
       position => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-
-        if (state.userLocationMarker) {
-          mainMap.removeLayer(state.userLocationMarker);
-        }
-
-        const iconHtml = `<div class="tactical-leaflet-marker marker-pulse" style="background:#3498db; width:24px; height:24px;"><i class="fa-solid fa-user"></i></div>`;
-        const icon = L.divIcon({ html: iconHtml, iconSize: [24, 24], iconAnchor: [12, 12] });
-
-        state.userLocationMarker = L.marker([lat, lng], { icon: icon }).addTo(mainMap);
-        state.userLocationMarker.bindTooltip("Вы здесь (GPS)").openTooltip();
-        mainMap.flyTo([lat, lng], 15, { duration: 1.5 });
-        showToast(`Позиция определена: ${lat.toFixed(5)}°, ${lng.toFixed(5)}°`, "success");
+        onGpsSuccess(position);
+        mainMap.flyTo([position.coords.latitude, position.coords.longitude], 15, { duration: 1.5 });
+        showToast(`Позиция определена: ${position.coords.latitude.toFixed(5)}°, ${position.coords.longitude.toFixed(5)}°`, "success");
       },
       err => {
-        showToast("Ошибка GPS геолокации: " + err.message, "error");
+        showToast("Ошибка GPS: " + err.message, "error");
       },
-      { enableHighAccuracy: true }
+      { enableHighAccuracy: true, timeout: 10000 }
     );
+  }
+
+  /* ==========================================================================
+     Tactical GPS Target Navigation & Compass Engine
+     ========================================================================== */
+  function startNavigatingToPoint(pt) {
+    state.gps.navTarget = pt;
+    if (!state.gps.isLiveTracking) {
+      startLiveGpsTracking(true);
+    }
+    
+    if (el.gpsNavHud) el.gpsNavHud.style.display = "block";
+    if (el.gpsNavTargetName) el.gpsNavTargetName.textContent = pt.name;
+
+    if (state.gps.userLatLng) {
+      updateNavigationHUD(state.gps.userLatLng[0], state.gps.userLatLng[1], state.gps.accuracy || 10);
+      showToast(`Наведение на цель «${pt.name}» активно`, "success");
+    } else {
+      showToast(`Наведение на цель «${pt.name}» запущено. Ожидание GPS...`, "info");
+      locateUserOnMap();
+    }
+
+    // Draw line between user and target
+    if (state.gps.navPolyline) mainMap.removeLayer(state.gps.navPolyline);
+    if (state.gps.userLatLng) {
+      state.gps.navPolyline = L.polyline([state.gps.userLatLng, [pt.lat, pt.lng]], {
+        color: "#2ecc71",
+        weight: 3,
+        dashArray: "8, 6"
+      }).addTo(mainMap);
+    }
+  }
+
+  function updateNavigationHUD(userLat, userLng, accuracy) {
+    if (!state.gps.navTarget) return;
+    const target = state.gps.navTarget;
+    const distM = calculateDistance(userLat, userLng, target.lat, target.lng);
+    const bearing = calculateBearing(userLat, userLng, target.lat, target.lng);
+    const cardinal = getCardinalDirection(bearing);
+
+    if (el.gpsDistanceVal) {
+      el.gpsDistanceVal.textContent = distM > 1000 ? `${(distM / 1000).toFixed(2)} км` : `${Math.round(distM)} м`;
+    }
+    if (el.gpsBearingVal) {
+      el.gpsBearingVal.textContent = `${Math.round(bearing)}° ${cardinal}`;
+    }
+    if (el.gpsAccuracyVal) {
+      el.gpsAccuracyVal.textContent = `±${Math.round(accuracy)} м`;
+    }
+
+    // Rotate Compass Needle
+    if (el.compassNeedle) {
+      el.compassNeedle.style.transform = `rotate(${bearing}deg)`;
+    }
+
+    // Update Navigation Polyline
+    if (state.gps.navPolyline) {
+      state.gps.navPolyline.setLatLngs([[userLat, userLng], [target.lat, target.lng]]);
+    } else {
+      state.gps.navPolyline = L.polyline([[userLat, userLng], [target.lat, target.lng]], {
+        color: "#2ecc71",
+        weight: 3,
+        dashArray: "8, 6"
+      }).addTo(mainMap);
+    }
+  }
+
+  function stopNavigating() {
+    state.gps.navTarget = null;
+    if (state.gps.navPolyline) {
+      mainMap.removeLayer(state.gps.navPolyline);
+      state.gps.navPolyline = null;
+    }
+    if (el.gpsNavHud) el.gpsNavHud.style.display = "none";
+    showToast("Наведение на цель отключено", "info");
+  }
+
+  /* ==========================================================================
+     GPS Track Recorder Engine
+     ========================================================================== */
+  function toggleTrackRecording() {
+    state.gps.isRecordingTrack = !state.gps.isRecordingTrack;
+    if (state.gps.isRecordingTrack) {
+      if (!state.gps.isLiveTracking) startLiveGpsTracking(true);
+      if (el.recordTrackBtnLabel) el.recordTrackBtnLabel.textContent = "Пауза";
+      if (el.btnToggleRecordTrack) el.btnToggleRecordTrack.className = "btn btn-sm btn-warning";
+      if (el.btnExportRecordedTrack) el.btnExportRecordedTrack.style.display = "inline-flex";
+      if (el.btnClearRecordedTrack) el.btnClearRecordedTrack.style.display = "inline-flex";
+      showToast("Запись полевого GPS трека начата", "success");
+    } else {
+      if (el.recordTrackBtnLabel) el.recordTrackBtnLabel.textContent = "Продолжить";
+      if (el.btnToggleRecordTrack) el.btnToggleRecordTrack.className = "btn btn-sm btn-danger";
+      showToast("Запись трека приостановлена", "info");
+    }
+  }
+
+  function addTrackPoint(lat, lng) {
+    state.gps.recordedTrackPoints.push([lat, lng]);
+    if (!state.gps.recordedTrackPolyline) {
+      state.gps.recordedTrackPolyline = L.polyline(state.gps.recordedTrackPoints, {
+        color: "#e74c3c",
+        weight: 4
+      }).addTo(mainMap);
+    } else {
+      state.gps.recordedTrackPolyline.setLatLngs(state.gps.recordedTrackPoints);
+    }
+
+    // Compute total track length
+    let len = 0;
+    for (let i = 0; i < state.gps.recordedTrackPoints.length - 1; i++) {
+      const p1 = state.gps.recordedTrackPoints[i];
+      const p2 = state.gps.recordedTrackPoints[i+1];
+      len += calculateDistance(p1[0], p1[1], p2[0], p2[1]);
+    }
+    if (el.trackLengthVal) el.trackLengthVal.textContent = len > 1000 ? `${(len / 1000).toFixed(2)} км` : `${Math.round(len)} м`;
+    if (el.trackPointsCountVal) el.trackPointsCountVal.textContent = state.gps.recordedTrackPoints.length;
+  }
+
+  function clearRecordedTrack() {
+    state.gps.recordedTrackPoints = [];
+    if (state.gps.recordedTrackPolyline) {
+      mainMap.removeLayer(state.gps.recordedTrackPolyline);
+      state.gps.recordedTrackPolyline = null;
+    }
+    if (el.trackLengthVal) el.trackLengthVal.textContent = "0 м";
+    if (el.trackPointsCountVal) el.trackPointsCountVal.textContent = "0";
+    if (el.btnExportRecordedTrack) el.btnExportRecordedTrack.style.display = "none";
+    if (el.btnClearRecordedTrack) el.btnClearRecordedTrack.style.display = "none";
+    if (el.recordTrackBtnLabel) el.recordTrackBtnLabel.textContent = "Старт";
+    showToast("Записанный трек очищен", "info");
+  }
+
+  /* ==========================================================================
+     Device Orientation Physical Compass Sensor
+     ========================================================================== */
+  function initDeviceOrientation() {
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener("deviceorientation", e => {
+        if (e.webkitCompassHeading) {
+          // iOS compass heading
+          state.gps.heading = e.webkitCompassHeading;
+        } else if (e.alpha !== null) {
+          // Android device orientation
+          state.gps.heading = 360 - e.alpha;
+        }
+      });
+    }
+  }
+
+  /* ==========================================================================
+     Mobile Bottom Navigation Dock Controller
+     ========================================================================== */
+  function initMobileDock() {
+    if (!el.mobileBottomDock) return;
+
+    const updateDockActive = btn => {
+      document.querySelectorAll(".mobile-dock-btn").forEach(b => b.classList.remove("active"));
+      if (btn) btn.classList.add("active");
+    };
+
+    el.dockBtnMap.addEventListener("click", () => {
+      updateDockActive(el.dockBtnMap);
+      el.sidebar.classList.add("collapsed");
+      mainMap.invalidateSize();
+    });
+
+    el.dockBtnPoints.addEventListener("click", () => {
+      updateDockActive(el.dockBtnPoints);
+      el.sidebar.classList.remove("collapsed");
+      const tabBtn = document.querySelector('.tab-btn[data-tab="tabPoints"]');
+      if (tabBtn) tabBtn.click();
+    });
+
+    el.dockBtnLayers.addEventListener("click", () => {
+      updateDockActive(el.dockBtnLayers);
+      el.sidebar.classList.remove("collapsed");
+      const tabBtn = document.querySelector('.tab-btn[data-tab="tabLayers"]');
+      if (tabBtn) tabBtn.click();
+    });
+
+    el.dockBtnSplit.addEventListener("click", () => {
+      toggleSplitScreen();
+      el.dockBtnSplit.classList.toggle("active", state.isSplitScreen);
+    });
+
+    el.dockBtnGPS.addEventListener("click", () => {
+      toggleLiveGps();
+      if (state.gps.userLatLng) {
+        mainMap.setView(state.gps.userLatLng, 15);
+      }
+    });
+
+    if (el.btnSidebarCloseMobile) {
+      el.btnSidebarCloseMobile.addEventListener("click", () => {
+        el.sidebar.classList.add("collapsed");
+        updateDockActive(el.dockBtnMap);
+        mainMap.invalidateSize();
+      });
+    }
   }
 
   /* ==========================================================================
@@ -951,7 +1344,77 @@ document.addEventListener("DOMContentLoaded", function() {
     el.btnMeasure.addEventListener("click", toggleMeasureTool);
     el.btnCloseMeasure.addEventListener("click", toggleMeasureTool);
     el.btnClearMeasure.addEventListener("click", clearMeasure);
+    
+    // GPS Buttons
     el.btnLocateMe.addEventListener("click", locateUserOnMap);
+    if (el.btnLiveGpsToggle) el.btnLiveGpsToggle.addEventListener("click", toggleLiveGps);
+    if (el.btnGpsTrackRecorder) {
+      el.btnGpsTrackRecorder.addEventListener("click", () => {
+        el.trackRecorderHud.style.display = el.trackRecorderHud.style.display === "none" ? "block" : "none";
+      });
+    }
+
+    if (el.btnCloseTrackRecorder) {
+      el.btnCloseTrackRecorder.addEventListener("click", () => {
+        el.trackRecorderHud.style.display = "none";
+      });
+    }
+
+    if (el.btnToggleRecordTrack) {
+      el.btnToggleRecordTrack.addEventListener("click", toggleTrackRecording);
+    }
+
+    if (el.btnClearRecordedTrack) {
+      el.btnClearRecordedTrack.addEventListener("click", clearRecordedTrack);
+    }
+
+    if (el.btnExportRecordedTrack) {
+      el.btnExportRecordedTrack.addEventListener("click", () => {
+        if (state.gps.recordedTrackPoints.length > 0 && window.GPX_KML_UTILS) {
+          const trackPoints = state.gps.recordedTrackPoints.map((pt, i) => ({
+            id: `trk-${i}`,
+            name: `Track Point ${i+1}`,
+            lat: pt[0],
+            lng: pt[1],
+            period: "1941/1944"
+          }));
+          window.GPX_KML_UTILS.exportToGPX(trackPoints, "grodno_field_track.gpx");
+          showToast("Полевой GPS-трек выгружен в GPX", "success");
+        }
+      });
+    }
+
+    // GPS Target Navigation HUD Actions
+    if (el.btnStopGpsNav) el.btnStopGpsNav.addEventListener("click", stopNavigating);
+    if (el.btnCenterUserGps) {
+      el.btnCenterUserGps.addEventListener("click", () => {
+        if (state.gps.userLatLng) mainMap.setView(state.gps.userLatLng, 16);
+      });
+    }
+    if (el.btnCenterTargetGps) {
+      el.btnCenterTargetGps.addEventListener("click", () => {
+        if (state.gps.navTarget) mainMap.setView([state.gps.navTarget.lat, state.gps.navTarget.lng], 16);
+      });
+    }
+    if (el.btnToggleFollowMode) {
+      el.btnToggleFollowMode.addEventListener("click", () => {
+        state.gps.followUser = !state.gps.followUser;
+        if (el.followModeLabel) el.followModeLabel.textContent = state.gps.followUser ? "Слежение" : "Свободно";
+        el.btnToggleFollowMode.classList.toggle("btn-success", state.gps.followUser);
+        el.btnToggleFollowMode.classList.toggle("btn-secondary", !state.gps.followUser);
+        showToast(state.gps.followUser ? "Автоследование карте включено" : "Автоследование отключено", "info");
+      });
+    }
+
+    // Dossier GPS Target Navigation Button
+    if (el.btnDossierNavigateGPS) {
+      el.btnDossierNavigateGPS.addEventListener("click", () => {
+        if (currentDossierPoint) {
+          closeModals();
+          startNavigatingToPoint(currentDossierPoint);
+        }
+      });
+    }
 
     document.querySelectorAll("[data-close]").forEach(btn => {
       btn.addEventListener("click", closeModals);
