@@ -54,7 +54,10 @@
 
     <!-- Main Toolbar Actions -->
     <div class="header-actions">
-      <button id="btnSplitScreen" class="btn btn-tactical" title="Переключить режим сравнения «Тогда и Сейчас»">
+      <div id="offlineIndicator" class="offline-badge" style="display:none;" title="Приложение работает в автономном офлайн-режиме">
+        <i class="fa-solid fa-plane"></i> <span>ОФЛАЙН</span>
+      </div>
+      <button id="btnSplitScreen" class="btn btn-tactical" title="Переключить режим сравнения «Тогда и Сейчас» (Горячая клавиша: S)">
         <i class="fa-solid fa-sliders"></i>
         <span>Режим «Было - Стало»</span>
       </button>
@@ -62,13 +65,16 @@
         <i class="fa-solid fa-plus"></i>
         <span>Добавить точку</span>
       </button>
-      <button id="btnExport" class="btn btn-primary" title="Экспорт / Импорт GPX и KML для навигаторов">
+      <button id="btnExport" class="btn btn-primary" title="Экспорт / Импорт GPX, KML и печать планшета">
         <i class="fa-solid fa-file-export"></i>
-        <span>GPX / KML</span>
+        <span>Экспорт / GPX</span>
       </button>
-      <button id="btnMeasure" class="btn btn-secondary" title="Измерение расстояний и траншей">
+      <button id="btnMeasure" class="btn btn-secondary" title="Измерение расстояний и траншей (Горячая клавиша: M)">
         <i class="fa-solid fa-ruler-combined"></i>
         <span>Линейка</span>
+      </button>
+      <button id="btnHelp" class="btn btn-icon" title="Горячие клавиши и инструкция поисковика">
+        <i class="fa-solid fa-circle-question"></i>
       </button>
       <button id="btnToggleSidebar" class="btn btn-icon" title="Свернуть/Развернуть панель">
         <i class="fa-solid fa-bars"></i>
@@ -108,6 +114,13 @@
             <option value="river_crossing">Переправы / Места боев</option>
             <option value="field_finding">Полевые находки экспедиции</option>
           </select>
+        </div>
+
+        <div class="filter-results-bar" id="filterResultsBar">
+          <span><i class="fa-solid fa-filter-list"></i> Найдено: <b id="filteredPointsCount">0</b> из <span id="totalPointsCount">0</span></span>
+          <button id="btnResetFilters" class="btn-reset-filters" style="display:none;" title="Сбросить все фильтры и поиск">
+            <i class="fa-solid fa-rotate-left"></i> Сброс
+          </button>
         </div>
       </div>
 
@@ -280,10 +293,15 @@
             </div>
             <div class="dossier-field">
               <label>Координаты (WGS84):</label>
-              <span id="dossierCoords" class="field-value code">--</span>
-              <button id="btnCopyCoords" class="btn btn-sm btn-secondary" title="Копировать координаты">
-                <i class="fa-solid fa-copy"></i> Копировать
-              </button>
+              <div class="dossier-coords-wrapper">
+                <span id="dossierCoords" class="field-value code">--</span>
+                <button id="btnToggleCoordsFormat" class="btn btn-sm btn-icon" title="Переключить формат (DD / DMS / Мин:Сек)">
+                  <i class="fa-solid fa-repeat"></i> <span id="coordsFormatLabel">DMS</span>
+                </button>
+                <button id="btnCopyCoords" class="btn btn-sm btn-secondary" title="Копировать координаты в буфер">
+                  <i class="fa-solid fa-copy"></i> Копировать
+                </button>
+              </div>
             </div>
             <div class="dossier-field">
               <label>Оценка глубины залегания:</label>
@@ -292,6 +310,14 @@
             <div class="dossier-field">
               <label>Оценка потерь / Емкость:</label>
               <span id="dossierCasualties" class="field-value highlight">--</span>
+            </div>
+            <div class="dossier-field">
+              <label>Навигация в полевых приложениях:</label>
+              <div class="dossier-nav-links">
+                <a id="linkNavYandex" href="#" target="_blank" class="nav-app-btn" title="Открыть в Яндекс Картах"><i class="fa-solid fa-location-dot"></i> Яндекс</a>
+                <a id="linkNavGoogle" href="#" target="_blank" class="nav-app-btn" title="Открыть в Google Maps"><i class="fa-solid fa-map-location"></i> Google</a>
+                <a id="linkNavOSM" href="#" target="_blank" class="nav-app-btn" title="Открыть в OpenStreetMap / OsmAnd"><i class="fa-solid fa-globe"></i> OSM</a>
+              </div>
             </div>
           </div>
 
@@ -313,6 +339,9 @@
           </div>
         </div>
         <div class="modal-footer">
+          <button id="btnDossierPrint" class="btn btn-secondary" title="Распечатать досье объекта">
+            <i class="fa-solid fa-print"></i> Печать
+          </button>
           <button id="btnDossierExportGPX" class="btn btn-primary">
             <i class="fa-solid fa-file-export"></i> Экспортировать в GPX
           </button>
@@ -349,6 +378,19 @@
                 <label>Долгота (Lng) *</label>
                 <input type="number" step="any" id="iptLng" class="form-input" placeholder="23.6444" required>
               </div>
+            </div>
+
+            <!-- Coordinate Helper Tools -->
+            <div class="coord-helper-buttons">
+              <button type="button" id="btnPickMapCoords" class="btn btn-sm btn-tactical" title="Кликните на карте для точного выбора места">
+                <i class="fa-solid fa-map-pin"></i> Указать на карте
+              </button>
+              <button type="button" id="btnFillMapCenter" class="btn btn-sm btn-secondary" title="Вставить координаты центра экрана">
+                <i class="fa-solid fa-crosshairs"></i> Центр карты
+              </button>
+              <button type="button" id="btnFillGPS" class="btn btn-sm btn-secondary" title="Вставить текущее GPS-местоположение">
+                <i class="fa-solid fa-location-arrow"></i> Мой GPS
+              </button>
             </div>
 
             <div class="form-row">
@@ -410,22 +452,28 @@
 
   <!-- GPX / KML Export & Import Modal -->
   <div id="exportModal" class="modal-backdrop" style="display:none;">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
       <div class="modal-content tactical-card">
         <div class="modal-header">
-          <h3><i class="fa-solid fa-file-export"></i> Экспорт и Импорт Геоданных</h3>
+          <h3><i class="fa-solid fa-file-export"></i> Экспорт, Импорт Геоданных и Планшеты</h3>
           <button class="modal-close" data-close="exportModal"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="modal-body">
           <div class="export-section">
-            <h4><i class="fa-solid fa-download"></i> Экспорт в мобильные навигаторы</h4>
-            <p>Выгрузите точки перспективных захоронений для работы в лесу без сети Интернет (OsmAnd, Garmin, Locus Map, Maps.me):</p>
+            <h4><i class="fa-solid fa-download"></i> Экспорт в полевые навигаторы (Garmin, OsmAnd, Locus, QGIS)</h4>
+            <p>Выгрузите точки для работы в лесных массивах без сотовой связи:</p>
             <div class="btn-group-grid">
               <button id="btnExportGPXAll" class="btn btn-primary">
                 <i class="fa-solid fa-file-code"></i> Скачать GPX (Все точки)
               </button>
+              <button id="btnExportGPXProspective" class="btn btn-tactical">
+                <i class="fa-solid fa-crosshairs"></i> GPX (Только неучтенки)
+              </button>
               <button id="btnExportKMLAll" class="btn btn-secondary">
                 <i class="fa-solid fa-earth-americas"></i> Скачать KML (Google Earth)
+              </button>
+              <button id="btnExportGeoJSON" class="btn btn-secondary">
+                <i class="fa-solid fa-draw-polygon"></i> Скачать GeoJSON (QGIS)
               </button>
             </div>
           </div>
@@ -433,8 +481,18 @@
           <hr class="tactical-divider"/>
 
           <div class="export-section">
+            <h4><i class="fa-solid fa-print"></i> Печатный полевой планшет экспедиции</h4>
+            <p>Формирование готовой сводной таблицы формата A4 с координатами, глубинами и архивными цитатами для работы в поле:</p>
+            <button id="btnPrintFieldSheet" class="btn btn-success" style="width:100%; margin-top:6px;">
+              <i class="fa-solid fa-print"></i> Распечатать / Экспорт PDF полевого планшета (35 точек)
+            </button>
+          </div>
+
+          <hr class="tactical-divider"/>
+
+          <div class="export-section">
             <h4><i class="fa-solid fa-upload"></i> Импорт пользовательских треков и точек (GPX)</h4>
-            <p>Загрузите трек или точки с вашего туристического GPS-навигатора:</p>
+            <p>Загрузите трек или путевые точки с вашего навигатора или смартфона:</p>
             <div class="file-drop-zone" id="gpxDropZone">
               <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
               <span>Перетащите GPX файл сюда или нажмите для выбора</span>
@@ -448,6 +506,49 @@
       </div>
     </div>
   </div>
+
+  <!-- Help & Hotkeys Modal -->
+  <div id="helpModal" class="modal-backdrop" style="display:none;">
+    <div class="modal-dialog">
+      <div class="modal-content tactical-card">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-circle-question"></i> Горячие клавиши и руководство</h3>
+          <button class="modal-close" data-close="helpModal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+          <div class="help-section">
+            <h4 style="font-size:13px; color:var(--color-accent-amber); margin-bottom:8px;"><i class="fa-solid fa-keyboard"></i> Быстрые клавиши:</h4>
+            <div class="hotkeys-grid">
+              <div class="hotkey-item"><kbd>S</kbd> <span>Режим сравнения «Было - Стало»</span></div>
+              <div class="hotkey-item"><kbd>M</kbd> <span>Включить / выключить линейку дистанций</span></div>
+              <div class="hotkey-item"><kbd>L</kbd> <span>Определить свое GPS положение</span></div>
+              <div class="hotkey-item"><kbd>/</kbd> <span>Фокус на строку поиска</span></div>
+              <div class="hotkey-item"><kbd>Esc</kbd> <span>Закрыть модальное окно / очистить линейку</span></div>
+            </div>
+          </div>
+          <hr class="tactical-divider"/>
+          <div class="help-section">
+            <h4 style="font-size:13px; color:var(--color-accent-green); margin-bottom:8px;"><i class="fa-solid fa-tree"></i> Работа в полевых условиях без связи:</h4>
+            <ul style="font-size:12px; color:var(--text-muted); line-height:1.6; padding-left:18px;">
+              <li>Приложение является <b>PWA</b> и сохраняет карты в кеш браузера для работы без интернета.</li>
+              <li>Для мобильных навигаторов (OsmAnd, Garmin, Locus Map) скачайте GPX через кнопку <b>«Экспорт / GPX»</b>.</li>
+              <li>Клик правой кнопкой мыши (или долгое нажатие) на карте открывает добавление новой точки.</li>
+              <li>Распечатайте <b>«Полевой планшет»</b> перед выходом в лесной массив.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" data-close="helpModal">Понятно</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Printable Field Briefing Sheet Container -->
+  <div id="printSection" class="print-only-section"></div>
 
   <!-- External JavaScript Libraries -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>

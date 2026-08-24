@@ -1020,9 +1020,236 @@ html, body {
   margin-top: 10px;
 }
 
+/* Offline Indicator Badge */
+.offline-badge {
+  background: rgba(231, 76, 60, 0.2);
+  border: 1px solid var(--color-accent-red);
+  color: var(--color-accent-red);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  animation: pulse-ring 2s infinite;
+}
+
+/* Filter Results Summary Bar */
+.filter-results-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 4px 2px;
+  border-top: 1px dashed var(--border-color);
+  margin-top: 2px;
+}
+.filter-results-bar b {
+  color: var(--color-accent-green);
+  font-family: var(--font-mono);
+}
+.btn-reset-filters {
+  background: none;
+  border: none;
+  color: var(--color-accent-amber);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn-reset-filters:hover {
+  text-decoration: underline;
+}
+
+/* Coordinate Helper Buttons inside Add Point Modal */
+.coord-helper-buttons {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.coord-helper-buttons .btn {
+  flex: 1;
+  font-size: 11px;
+  padding: 5px 8px;
+}
+
+/* Dossier Modal Coordinates & External Navigation */
+.dossier-coords-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.dossier-nav-links {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.nav-app-btn {
+  font-size: 11px;
+  padding: 4px 8px;
+  background-color: var(--bg-darker);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--color-accent-blue);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all var(--transition-fast);
+}
+.nav-app-btn:hover {
+  background-color: var(--bg-card-hover);
+  border-color: var(--color-accent-blue);
+  color: #fff;
+}
+
+/* Measuring Cursor Mode */
+.map-measuring {
+  cursor: crosshair !important;
+}
+
+/* Tactical Toast Notification System */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.tactical-toast {
+  background: rgba(18, 21, 24, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-highlight);
+  color: var(--text-main);
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  pointer-events: auto;
+  min-width: 280px;
+  max-width: 420px;
+  animation: slideInToast 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.tactical-toast.toast-success {
+  border-left: 4px solid var(--color-accent-green);
+}
+.tactical-toast.toast-success i {
+  color: var(--color-accent-green);
+}
+
+.tactical-toast.toast-info {
+  border-left: 4px solid var(--color-accent-blue);
+}
+.tactical-toast.toast-info i {
+  color: var(--color-accent-blue);
+}
+
+.tactical-toast.toast-warning {
+  border-left: 4px solid var(--color-accent-amber);
+}
+.tactical-toast.toast-warning i {
+  color: var(--color-accent-amber);
+}
+
+.tactical-toast.toast-error {
+  border-left: 4px solid var(--color-accent-red);
+}
+.tactical-toast.toast-error i {
+  color: var(--color-accent-red);
+}
+
+@keyframes slideInToast {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Hotkeys Modal Styling */
+.hotkeys-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hotkey-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--text-main);
+}
+kbd {
+  background-color: var(--bg-darker);
+  border: 1px solid var(--border-highlight);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-accent-amber);
+  box-shadow: 0 2px 0 var(--border-color);
+  min-width: 28px;
+  text-align: center;
+}
+
+/* Print Only Stylesheet (Field Expedition Tablet) */
+.print-only-section {
+  display: none;
+}
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+  }
+  .app-header, .app-workspace, .modal-backdrop, .toast-container, .map-hud-overlay {
+    display: none !important;
+  }
+  .print-only-section {
+    display: block !important;
+    padding: 10mm;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .print-field-sheet table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+  .print-field-sheet th, .print-field-sheet td {
+    border: 1px solid #333 !important;
+    padding: 4px 6px !important;
+    color: #000 !important;
+  }
+  .print-field-sheet th {
+    background-color: #f0f0f0 !important;
+  }
+}
+
 @media (max-width: 900px) {
   .header-metrics { display: none; }
   .app-sidebar { width: 100%; position: absolute; top: 0; bottom: 0; }
   .brand-title h1 { font-size: 13px; }
   .dossier-grid { grid-template-columns: 1fr; }
+  .btn-group-grid { grid-template-columns: 1fr; }
+  .coord-helper-buttons { flex-direction: column; }
 }

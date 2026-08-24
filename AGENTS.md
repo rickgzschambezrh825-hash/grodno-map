@@ -59,3 +59,25 @@
 
 3. **Интеграция сторонних сервисов:**
    * Ссылки на ОБД «Мемориал», «Память народа», ВИПЦ и базы данных военнопленных (Дрезден, Арользен) должны соответствовать структуре, утвержденной в **[RESEARCH_PLAN.md](file:///c:/Users/john/Documents/antigravity/map/RESEARCH_PLAN.md)**.
+
+---
+
+## 5. Интеграция с Google NotebookLM (MCP и nlm CLI)
+
+Платформа настроена на прямое взаимодействие с облачным блокнотом Google NotebookLM через MCP-сервер и консольную утилиту `nlm` (`NotebookLM Tools CLI`).
+
+### Параметры подключения:
+* **Блокнот:** «Гродно ВОв»
+* **Notebook ID:** `ba6b3c9c-d793-4ce0-915f-595895a83e17`
+* **Объем базы знаний:** 49 первичных архивных источников (документы ЦАМО, NARA, карточки Дрездена/Арользена, данные по 68-му УР, 86-му ПО, Stalag 324 и полный реестр точек GRO-Registry).
+* **Исполняемые компоненты:**
+  * **MCP-сервер:** `C:\Users\john\.local\bin\notebooklm-mcp.exe` (конфигурационный файл: `C:\Users\john\.gemini\antigravity\mcp_config.json`, имя сервера: `gemini-notebook-mcp`).
+  * **CLI-инструмент:** `C:\Users\john\.local\bin\nlm.exe`
+
+### Инструкции для AI-агентов по запросам в NotebookLM:
+Для получения уточнений, поиска первичных выписок или извлечения данных из блокнота использовать CLI-команды:
+* **Список блокнотов:** `C:\Users\john\.local\bin\nlm.exe notebook list`
+* **Список источников блокнота:** `C:\Users\john\.local\bin\nlm.exe source list ba6b3c9c-d793-4ce0-915f-595895a83e17`
+* **Семантический запрос к источникам:** `C:\Users\john\.local\bin\nlm.exe query notebook ba6b3c9c-d793-4ce0-915f-595895a83e17 "<текст вопроса>"`
+* **Извлечение сырого текста источника:** `C:\Users\john\.local\bin\nlm.exe source content <source_id>`
+

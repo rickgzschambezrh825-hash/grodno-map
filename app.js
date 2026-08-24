@@ -17,7 +17,10 @@ document.addEventListener("DOMContentLoaded", function() {
     measureActive: false,
     measurePoints: [],
     measurePolyline: null,
-    userLocationMarker: null
+    userLocationMarker: null,
+    coordsFormat: "DD", // "DD" or "DMS"
+    isPickingCoords: false,
+    pickCoordsCallback: null
   };
 
   // DOM Elements
@@ -33,11 +36,15 @@ document.addEventListener("DOMContentLoaded", function() {
     btnAddPoint: document.getElementById("btnAddPoint"),
     btnExport: document.getElementById("btnExport"),
     btnMeasure: document.getElementById("btnMeasure"),
+    btnHelp: document.getElementById("btnHelp"),
     btnLocateMe: document.getElementById("btnLocateMe"),
     searchInput: document.getElementById("searchInput"),
     btnClearSearch: document.getElementById("btnClearSearch"),
     categoryFilter: document.getElementById("categoryFilter"),
     periodFilter: document.getElementById("periodFilter"),
+    filteredPointsCount: document.getElementById("filteredPointsCount"),
+    totalPointsCount: document.getElementById("totalPointsCount"),
+    btnResetFilters: document.getElementById("btnResetFilters"),
     pointsList: document.getElementById("pointsList"),
     chronologyList: document.getElementById("chronologyList"),
     sourcesList: document.getElementById("sourcesList"),
@@ -52,12 +59,21 @@ document.addEventListener("DOMContentLoaded", function() {
     measureResult: document.getElementById("measureResult"),
     btnClearMeasure: document.getElementById("btnClearMeasure"),
     btnCloseMeasure: document.getElementById("btnCloseMeasure"),
+    offlineIndicator: document.getElementById("offlineIndicator"),
+    toastContainer: document.getElementById("toastContainer"),
+    printSection: document.getElementById("printSection"),
     
     // Modals
     dossierModal: document.getElementById("dossierModal"),
     pointModal: document.getElementById("pointModal"),
     exportModal: document.getElementById("exportModal"),
+    helpModal: document.getElementById("helpModal"),
     pointForm: document.getElementById("pointForm"),
+    
+    // Point Modal Helpers
+    btnPickMapCoords: document.getElementById("btnPickMapCoords"),
+    btnFillMapCenter: document.getElementById("btnFillMapCenter"),
+    btnFillGPS: document.getElementById("btnFillGPS"),
     
     // Dossier Elements
     dossierTitle: document.getElementById("dossierTitle"),
@@ -71,9 +87,22 @@ document.addEventListener("DOMContentLoaded", function() {
     dossierDescription: document.getElementById("dossierDescription"),
     dossierArchiveRef: document.getElementById("dossierArchiveRef"),
     dossierRecommendation: document.getElementById("dossierRecommendation"),
+    btnToggleCoordsFormat: document.getElementById("btnToggleCoordsFormat"),
+    coordsFormatLabel: document.getElementById("coordsFormatLabel"),
     btnCopyCoords: document.getElementById("btnCopyCoords"),
+    btnDossierPrint: document.getElementById("btnDossierPrint"),
     btnDossierExportGPX: document.getElementById("btnDossierExportGPX"),
     btnDossierFocusMap: document.getElementById("btnDossierFocusMap"),
+    linkNavYandex: document.getElementById("linkNavYandex"),
+    linkNavGoogle: document.getElementById("linkNavGoogle"),
+    linkNavOSM: document.getElementById("linkNavOSM"),
+    
+    // Export Elements
+    btnExportGPXAll: document.getElementById("btnExportGPXAll"),
+    btnExportGPXProspective: document.getElementById("btnExportGPXProspective"),
+    btnExportKMLAll: document.getElementById("btnExportKMLAll"),
+    btnExportGeoJSON: document.getElementById("btnExportGeoJSON"),
+    btnPrintFieldSheet: document.getElementById("btnPrintFieldSheet"),
     
     // Layer Controls
     baseMapOptions: document.getElementById("baseMapOptions"),
@@ -94,6 +123,7 @@ document.addEventListener("DOMContentLoaded", function() {
   init();
 
   function init() {
+    initServiceWorker();
     initMaps();
     initLayersManager();
     initMarkers();
@@ -104,6 +134,63 @@ document.addEventListener("DOMContentLoaded", function() {
     renderArchivalSources();
     renderMemoirsAndPhotos();
     updateMetrics();
+  }
+
+  /* ==========================================================================
+     Service Worker & Offline Notification System
+     ========================================================================== */
+  function initServiceWorker() {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js")
+        .then(reg => {
+          console.log("[PWA] Service Worker registered with scope:", reg.scope);
+        })
+        .catch(err => {
+          console.warn("[PWA] Service Worker registration failed:", err);
+        });
+    }
+
+    const updateOnlineStatus = () => {
+      if (el.offlineIndicator) {
+        el.offlineIndicator.style.display = navigator.onLine ? "none" : "flex";
+      }
+    };
+
+    window.addEventListener("online", () => {
+      updateOnlineStatus();
+      showToast("Подключение к сети восстановлено", "success");
+    });
+
+    window.addEventListener("offline", () => {
+      updateOnlineStatus();
+      showToast("Переход в автономный офлайн-режим карты", "warning");
+    });
+
+    updateOnlineStatus();
+  }
+
+  /* ==========================================================================
+     Tactical Toast Notification Engine
+     ========================================================================== */
+  function showToast(message, type = "info", duration = 3200) {
+    if (!el.toastContainer) return;
+    const iconMap = {
+      success: "fa-circle-check",
+      info: "fa-circle-info",
+      warning: "fa-triangle-exclamation",
+      error: "fa-circle-xmark"
+    };
+
+    const toast = document.createElement("div");
+    toast.className = `tactical-toast toast-${type}`;
+    toast.innerHTML = `<i class="fa-solid ${iconMap[type] || "fa-info"}"></i> <span>${message}</span>`;
+    el.toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      toast.style.transform = "translateY(15px)";
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
   }
 
   /* ==========================================================================
@@ -152,6 +239,14 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     mainMap.on("click", function(e) {
+      if (state.isPickingCoords) {
+        state.isPickingCoords = false;
+        el.map.classList.remove("map-measuring");
+        if (state.pickCoordsCallback) {
+          state.pickCoordsCallback(e.latlng);
+        }
+        return;
+      }
       if (state.measureActive) {
         addMeasurePoint(e.latlng);
       }
@@ -419,13 +514,23 @@ document.addEventListener("DOMContentLoaded", function() {
 
   function renderPointsList() {
     const points = getFilteredPoints();
-    el.pointsTabCount.textContent = points.length;
+    const totalCount = getAllPoints().length;
+    const filteredCount = points.length;
+
+    el.pointsTabCount.textContent = filteredCount;
+    if (el.filteredPointsCount) el.filteredPointsCount.textContent = filteredCount;
+    if (el.totalPointsCount) el.totalPointsCount.textContent = totalCount;
+
+    if (el.btnResetFilters) {
+      const isFiltered = state.activePeriod !== "all" || state.activeCategory !== "all" || state.searchQuery.trim() !== "";
+      el.btnResetFilters.style.display = isFiltered ? "inline-flex" : "none";
+    }
 
     if (points.length === 0) {
       el.pointsList.innerHTML = `
         <div style="text-align:center; padding: 30px 10px; color: var(--text-muted);">
           <i class="fa-solid fa-filter-circle-xmark" style="font-size:32px; margin-bottom:8px;"></i>
-          <p>По вашему запросу объектов не найдено.</p>
+          <p>По вашему фильтру объектов не найдено.</p>
         </div>
       `;
       return;
@@ -461,9 +566,16 @@ document.addEventListener("DOMContentLoaded", function() {
           <div class="point-desc-short">${shortDesc}</div>
           <div class="point-card-actions">
             <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">${pt.lat.toFixed(4)}°, ${pt.lng.toFixed(4)}°</span>
-            <button class="btn btn-sm btn-tactical btn-view-dossier" data-id="${pt.id}">
-              <i class="fa-solid fa-folder-open"></i> ${sourceBadge}
-            </button>
+            <div style="display:flex; gap:6px; align-items:center;">
+              ${pt.isUserCreated ? `
+                <button class="btn btn-danger-sm btn-delete-user-point" data-id="${pt.id}" title="Удалить полевую точку">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              ` : ""}
+              <button class="btn btn-sm btn-tactical btn-view-dossier" data-id="${pt.id}">
+                <i class="fa-solid fa-folder-open"></i> ${sourceBadge}
+              </button>
+            </div>
           </div>
         </div>
       `;
@@ -491,19 +603,38 @@ document.addEventListener("DOMContentLoaded", function() {
         if (pt) openDossierModal(pt);
       });
     });
+
+    el.pointsList.querySelectorAll(".btn-delete-user-point").forEach(btn => {
+      btn.addEventListener("click", function(e) {
+        e.stopPropagation();
+        const ptId = this.dataset.id;
+        if (confirm("Вы уверены, что хотите удалить эту полевую точку?")) {
+          state.userPoints = state.userPoints.filter(p => p.id !== ptId);
+          localStorage.setItem("grodno_user_points", JSON.stringify(state.userPoints));
+          initMarkers();
+          renderPointsList();
+          updateMetrics();
+          showToast("Полевая точка успешно удалена", "info");
+        }
+      });
+    });
   }
 
   /* ==========================================================================
-     Battle Chronology Timeline
+     Battle Chronology Timeline (Interactive & Period Filtered)
      ========================================================================== */
   function renderChronology() {
     const chronology = state.data.chronology || [];
-    let html = "";
+    const filtered = chronology.filter(c => {
+      if (state.activePeriod === "all") return true;
+      return c.period.includes(state.activePeriod);
+    });
 
-    chronology.forEach(c => {
+    let html = "";
+    filtered.forEach(c => {
       html += `
-        <div class="timeline-item" data-period="${c.period}">
-          <div class="timeline-date">${c.date}</div>
+        <div class="timeline-item" data-period="${c.period}" style="cursor:pointer;" title="Нажмите для перехода к сектору на карте">
+          <div class="timeline-date"><i class="fa-solid fa-clock"></i> ${c.date}</div>
           <div class="timeline-title">${c.title}</div>
           <div style="font-size:11px; color:var(--color-accent-green); margin-bottom:4px;">
             <i class="fa-solid fa-shield-halved"></i> <b>Сектор:</b> ${c.sector}
@@ -519,6 +650,19 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     el.chronologyList.innerHTML = html;
+
+    el.chronologyList.querySelectorAll(".timeline-item").forEach(item => {
+      item.addEventListener("click", function() {
+        const period = this.dataset.period;
+        if (period === "1941") {
+          mainMap.flyTo([53.8189, 23.6145], 13, { duration: 1.2 });
+          showToast("Фокус на секторе обороны 1941 г. (Сопоцкин / Новики)", "info");
+        } else if (period === "1944") {
+          mainMap.flyTo([53.7251, 23.8154], 13, { duration: 1.2 });
+          showToast("Фокус на рубеже форсирования Немана 1944 г. (Пышки)", "info");
+        }
+      });
+    });
   }
 
   /* ==========================================================================
@@ -589,8 +733,19 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   /* ==========================================================================
-     Modals & Dossier Handler (MULTI-PARAGRAPH FORMATTING)
+     Modals & Dossier Handler (MULTI-PARAGRAPH FORMATTING + NAVIGATION LINKS)
      ========================================================================== */
+  function updateDossierCoordsDisplay(pt) {
+    if (!pt) return;
+    if (state.coordsFormat === "DMS" && window.GPX_KML_UTILS) {
+      el.dossierCoords.textContent = window.GPX_KML_UTILS.convertToDMS(pt.lat, pt.lng);
+      if (el.coordsFormatLabel) el.coordsFormatLabel.textContent = "DD";
+    } else {
+      el.dossierCoords.textContent = `${pt.lat.toFixed(5)}° N, ${pt.lng.toFixed(5)}° E`;
+      if (el.coordsFormatLabel) el.coordsFormatLabel.textContent = "DMS";
+    }
+  }
+
   function openDossierModal(pt) {
     currentDossierPoint = pt;
     const catConfig = state.data.categories[pt.category] || { label: pt.category, color: "#2ecc71" };
@@ -601,9 +756,15 @@ document.addEventListener("DOMContentLoaded", function() {
     el.dossierCategory.textContent = catConfig.label;
     el.dossierPeriod.textContent = pt.period || "1941/1944";
     el.dossierUnit.textContent = pt.unit || "Н/Д";
-    el.dossierCoords.textContent = `${pt.lat.toFixed(5)}° N, ${pt.lng.toFixed(5)}° E`;
     el.dossierDepth.textContent = pt.depthEstimate || "Н/Д";
     el.dossierCasualties.textContent = pt.estimatedCasualties || "Н/Д";
+
+    updateDossierCoordsDisplay(pt);
+
+    // Update External Navigation Links
+    if (el.linkNavYandex) el.linkNavYandex.href = `https://yandex.ru/maps/?pt=${pt.lng},${pt.lat}&z=16&l=sat`;
+    if (el.linkNavGoogle) el.linkNavGoogle.href = `https://www.google.com/maps/search/?api=1&query=${pt.lat},${pt.lng}`;
+    if (el.linkNavOSM) el.linkNavOSM.href = `https://www.openstreetmap.org/?mlat=${pt.lat}&mlon=${pt.lng}#map=16/${pt.lat}/${pt.lng}`;
 
     // Formatted 3-paragraph renderer with quote highlighting
     const rawDesc = pt.description || "Описание отсутствует.";
@@ -617,7 +778,6 @@ document.addEventListener("DOMContentLoaded", function() {
     }).join("");
 
     el.dossierDescription.innerHTML = paragraphsHtml;
-
     el.dossierArchiveRef.textContent = pt.tsamoRef || "Архивные ссылки уточняются.";
     el.dossierRecommendation.textContent = pt.recommendation || "Провести стандартное визуальное обследование.";
 
@@ -672,6 +832,8 @@ document.addEventListener("DOMContentLoaded", function() {
      ========================================================================== */
   function toggleMeasureTool() {
     state.measureActive = !state.measureActive;
+    el.map.classList.toggle("map-measuring", state.measureActive);
+
     if (state.measureActive) {
       el.btnMeasure.classList.add("active");
       el.measureToolbar.style.display = "block";
@@ -722,9 +884,11 @@ document.addEventListener("DOMContentLoaded", function() {
      ========================================================================== */
   function locateUserOnMap() {
     if (!navigator.geolocation) {
-      alert("Геолокация не поддерживается вашим браузером.");
+      showToast("Геолокация не поддерживается вашим браузером", "error");
       return;
     }
+
+    showToast("Определение GPS координат...", "info");
 
     navigator.geolocation.getCurrentPosition(
       position => {
@@ -741,16 +905,17 @@ document.addEventListener("DOMContentLoaded", function() {
         state.userLocationMarker = L.marker([lat, lng], { icon: icon }).addTo(mainMap);
         state.userLocationMarker.bindTooltip("Вы здесь (GPS)").openTooltip();
         mainMap.flyTo([lat, lng], 15, { duration: 1.5 });
+        showToast(`Позиция определена: ${lat.toFixed(5)}°, ${lng.toFixed(5)}°`, "success");
       },
       err => {
-        alert("Не удалось определить текущие GPS-координаты: " + err.message);
+        showToast("Ошибка GPS геолокации: " + err.message, "error");
       },
       { enableHighAccuracy: true }
     );
   }
 
   /* ==========================================================================
-     UI Event Listeners
+     UI Event Listeners & Hotkeys
      ========================================================================== */
   function initUIEvents() {
     el.btnToggleSidebar.addEventListener("click", () => {
@@ -781,6 +946,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     el.btnAddPoint.addEventListener("click", () => openAddPointModal());
     el.btnExport.addEventListener("click", () => el.exportModal.style.display = "flex");
+    if (el.btnHelp) el.btnHelp.addEventListener("click", () => el.helpModal.style.display = "flex");
+
     el.btnMeasure.addEventListener("click", toggleMeasureTool);
     el.btnCloseMeasure.addEventListener("click", toggleMeasureTool);
     el.btnClearMeasure.addEventListener("click", clearMeasure);
@@ -790,14 +957,93 @@ document.addEventListener("DOMContentLoaded", function() {
       btn.addEventListener("click", closeModals);
     });
 
+    // Reset Filters Handler
+    if (el.btnResetFilters) {
+      el.btnResetFilters.addEventListener("click", () => {
+        state.activePeriod = "all";
+        state.activeCategory = "all";
+        state.searchQuery = "";
+        el.searchInput.value = "";
+        el.btnClearSearch.style.display = "none";
+        el.categoryFilter.value = "all";
+        el.periodFilter.querySelectorAll(".pill").forEach(p => {
+          p.classList.toggle("active", p.dataset.period === "all");
+        });
+        initMarkers();
+        renderPointsList();
+        renderChronology();
+        showToast("Фильтры сброшены", "info");
+      });
+    }
+
+    // Point Modal Coordinate Helpers
+    if (el.btnPickMapCoords) {
+      el.btnPickMapCoords.addEventListener("click", () => {
+        closeModals();
+        state.isPickingCoords = true;
+        el.map.classList.add("map-measuring");
+        showToast("Кликните на карте для установки координат точки", "info");
+        state.pickCoordsCallback = function(latlng) {
+          openAddPointModal(latlng.lat.toFixed(6), latlng.lng.toFixed(6));
+          showToast(`Координаты зафиксированы: ${latlng.lat.toFixed(5)}°, ${latlng.lng.toFixed(5)}°`, "success");
+        };
+      });
+    }
+
+    if (el.btnFillMapCenter) {
+      el.btnFillMapCenter.addEventListener("click", () => {
+        const center = mainMap.getCenter();
+        document.getElementById("iptLat").value = center.lat.toFixed(6);
+        document.getElementById("iptLng").value = center.lng.toFixed(6);
+        showToast("Вставлены координаты центра экрана", "success");
+      });
+    }
+
+    if (el.btnFillGPS) {
+      el.btnFillGPS.addEventListener("click", () => {
+        if (!navigator.geolocation) {
+          showToast("Геолокация не поддерживается", "error");
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(pos => {
+          document.getElementById("iptLat").value = pos.coords.latitude.toFixed(6);
+          document.getElementById("iptLng").value = pos.coords.longitude.toFixed(6);
+          showToast("Вставлены текущие GPS координаты", "success");
+        }, err => {
+          showToast("Ошибка GPS: " + err.message, "error");
+        });
+      });
+    }
+
+    // Toggle Coords Format (DD / DMS)
+    if (el.btnToggleCoordsFormat) {
+      el.btnToggleCoordsFormat.addEventListener("click", () => {
+        state.coordsFormat = state.coordsFormat === "DD" ? "DMS" : "DD";
+        updateDossierCoordsDisplay(currentDossierPoint);
+      });
+    }
+
+    // Copy Coordinates Button
     el.btnCopyCoords.addEventListener("click", () => {
       if (currentDossierPoint) {
-        const coordsStr = `${currentDossierPoint.lat}, ${currentDossierPoint.lng}`;
+        const coordsStr = `${currentDossierPoint.lat.toFixed(6)}, ${currentDossierPoint.lng.toFixed(6)}`;
         navigator.clipboard.writeText(coordsStr).then(() => {
-          alert(`Координаты скопированы: ${coordsStr}`);
+          showToast(`Координаты скопированы в буфер: ${coordsStr}`, "success");
+        }).catch(() => {
+          showToast(`Координаты: ${coordsStr}`, "info");
         });
       }
     });
+
+    // Print Dossier
+    if (el.btnDossierPrint) {
+      el.btnDossierPrint.addEventListener("click", () => {
+        if (currentDossierPoint && window.GPX_KML_UTILS && el.printSection) {
+          el.printSection.innerHTML = window.GPX_KML_UTILS.generatePrintableFieldSheet([currentDossierPoint]);
+          window.print();
+        }
+      });
+    }
 
     el.btnDossierFocusMap.addEventListener("click", () => {
       if (currentDossierPoint) {
@@ -809,6 +1055,7 @@ document.addEventListener("DOMContentLoaded", function() {
     el.btnDossierExportGPX.addEventListener("click", () => {
       if (currentDossierPoint && window.GPX_KML_UTILS) {
         window.GPX_KML_UTILS.exportToGPX([currentDossierPoint], `${currentDossierPoint.code || "point"}.gpx`);
+        showToast(`GPX для точки ${currentDossierPoint.code || ""} скачан`, "success");
       }
     });
 
@@ -845,6 +1092,7 @@ document.addEventListener("DOMContentLoaded", function() {
         state.activePeriod = this.dataset.period;
         initMarkers();
         renderPointsList();
+        renderChronology();
       });
     });
 
@@ -861,7 +1109,7 @@ document.addEventListener("DOMContentLoaded", function() {
       const name = document.getElementById("iptName").value;
 
       if (isNaN(lat) || isNaN(lng) || !name) {
-        alert("Пожалуйста, заполните корректно название и координаты WGS84.");
+        showToast("Пожалуйста, заполните корректно название и координаты WGS84", "warning");
         return;
       }
 
@@ -890,42 +1138,107 @@ document.addEventListener("DOMContentLoaded", function() {
       renderPointsList();
       updateMetrics();
       mainMap.flyTo([lat, lng], 14);
+      showToast(`Точка «${newPt.name}» успешно добавлена`, "success");
     });
 
-    document.getElementById("btnExportGPXAll").addEventListener("click", () => {
-      if (window.GPX_KML_UTILS) {
-        window.GPX_KML_UTILS.exportToGPX(getAllPoints(), "grodno_expedition_full.gpx");
-      }
-    });
+    // Export Handlers
+    if (el.btnExportGPXAll) {
+      el.btnExportGPXAll.addEventListener("click", () => {
+        if (window.GPX_KML_UTILS) {
+          window.GPX_KML_UTILS.exportToGPX(getAllPoints(), "grodno_expedition_full.gpx");
+          showToast("GPX файл со всеми точками выгружен", "success");
+        }
+      });
+    }
 
-    document.getElementById("btnExportKMLAll").addEventListener("click", () => {
-      if (window.GPX_KML_UTILS) {
-        window.GPX_KML_UTILS.exportToKML(getAllPoints(), "grodno_expedition_full.kml");
-      }
-    });
+    if (el.btnExportGPXProspective) {
+      el.btnExportGPXProspective.addEventListener("click", () => {
+        if (window.GPX_KML_UTILS) {
+          const prospective = getAllPoints().filter(p => p.category === "prospective_burial" || p.category === "san_burial");
+          window.GPX_KML_UTILS.exportToGPX(prospective, "grodno_prospective_burials.gpx");
+          showToast(`Выгружено ${prospective.length} перспективных точек в GPX`, "success");
+        }
+      });
+    }
 
+    if (el.btnExportKMLAll) {
+      el.btnExportKMLAll.addEventListener("click", () => {
+        if (window.GPX_KML_UTILS) {
+          window.GPX_KML_UTILS.exportToKML(getAllPoints(), "grodno_expedition_full.kml");
+          showToast("KML файл для Google Earth выгружен", "success");
+        }
+      });
+    }
+
+    if (el.btnExportGeoJSON) {
+      el.btnExportGeoJSON.addEventListener("click", () => {
+        if (window.GPX_KML_UTILS) {
+          window.GPX_KML_UTILS.exportToGeoJSON(getAllPoints(), "grodno_expedition_points.geojson");
+          showToast("GeoJSON файл для QGIS / ArcGIS выгружен", "success");
+        }
+      });
+    }
+
+    if (el.btnPrintFieldSheet) {
+      el.btnPrintFieldSheet.addEventListener("click", () => {
+        if (window.GPX_KML_UTILS && el.printSection) {
+          const pointsToPrint = getFilteredPoints();
+          el.printSection.innerHTML = window.GPX_KML_UTILS.generatePrintableFieldSheet(pointsToPrint);
+          window.print();
+        }
+      });
+    }
+
+    // GPX Drag & Drop Upload
     const dropZone = document.getElementById("gpxDropZone");
     const fileInput = document.getElementById("gpxFileInput");
 
-    dropZone.addEventListener("click", () => fileInput.click());
-    dropZone.addEventListener("dragover", e => {
-      e.preventDefault();
-      dropZone.style.borderColor = "var(--color-accent-green)";
-    });
-    dropZone.addEventListener("dragleave", () => {
-      dropZone.style.borderColor = "var(--border-highlight)";
-    });
-    dropZone.addEventListener("drop", e => {
-      e.preventDefault();
-      dropZone.style.borderColor = "var(--border-highlight)";
-      if (e.dataTransfer.files.length > 0) {
-        handleGPXFile(e.dataTransfer.files[0]);
-      }
-    });
+    if (dropZone && fileInput) {
+      dropZone.addEventListener("click", () => fileInput.click());
+      dropZone.addEventListener("dragover", e => {
+        e.preventDefault();
+        dropZone.style.borderColor = "var(--color-accent-green)";
+      });
+      dropZone.addEventListener("dragleave", () => {
+        dropZone.style.borderColor = "var(--border-highlight)";
+      });
+      dropZone.addEventListener("drop", e => {
+        e.preventDefault();
+        dropZone.style.borderColor = "var(--border-highlight)";
+        if (e.dataTransfer.files.length > 0) {
+          handleGPXFile(e.dataTransfer.files[0]);
+        }
+      });
 
-    fileInput.addEventListener("change", e => {
-      if (e.target.files.length > 0) {
-        handleGPXFile(e.target.files[0]);
+      fileInput.addEventListener("change", e => {
+        if (e.target.files.length > 0) {
+          handleGPXFile(e.target.files[0]);
+        }
+      });
+    }
+
+    // Global Hotkeys Listener
+    document.addEventListener("keydown", function(e) {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) {
+        if (e.key === "Escape") {
+          document.activeElement.blur();
+        }
+        return;
+      }
+      if (e.key === "Escape") {
+        closeModals();
+        if (state.measureActive) toggleMeasureTool();
+      } else if (e.key === "m" || e.key === "M" || e.key === "ь" || e.key === "Ь") {
+        toggleMeasureTool();
+        showToast(state.measureActive ? "Линейка включена (кликните для замера)" : "Линейка выключена", "info");
+      } else if (e.key === "s" || e.key === "S" || e.key === "ы" || e.key === "Ы") {
+        toggleSplitScreen();
+        showToast(state.isSplitScreen ? "Режим «Было - Стало» активирован" : "Режим «Было - Стало» выключен", "info");
+      } else if (e.key === "l" || e.key === "L" || e.key === "д" || e.key === "Д") {
+        locateUserOnMap();
+      } else if (e.key === "/") {
+        e.preventDefault();
+        if (el.searchInput) el.searchInput.focus();
       }
     });
   }
@@ -942,9 +1255,9 @@ document.addEventListener("DOMContentLoaded", function() {
           initMarkers();
           renderPointsList();
           updateMetrics();
-          alert(`Успешно импортировано ${imported.length} точек из файла ${file.name}`);
+          showToast(`Импортировано ${imported.length} точек из ${file.name}`, "success");
         } else {
-          alert("Не удалось извлечь точки из файла GPX. Проверьте формат XML.");
+          showToast("Не удалось извлечь точки из файла GPX. Проверьте формат XML", "error");
         }
       }
     };

@@ -127,6 +127,119 @@ window.GPX_KML_UTILS = {
     return parsedPoints;
   },
 
+  /**
+   * Export array of points to GeoJSON format
+   * @param {Array} points Array of point objects
+   * @param {String} filename Output file name
+   */
+  exportToGeoJSON: function(points, filename = "grodno_expedition_points.geojson") {
+    const geojson = {
+      type: "FeatureCollection",
+      features: points.map(pt => ({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [pt.lng, pt.lat]
+        },
+        properties: {
+          id: pt.id,
+          code: pt.code || pt.id,
+          name: pt.name,
+          category: pt.category,
+          period: pt.period,
+          unit: pt.unit || "",
+          depthEstimate: pt.depthEstimate || "",
+          estimatedCasualties: pt.estimatedCasualties || "",
+          description: pt.description || "",
+          tsamoRef: pt.tsamoRef || "",
+          recommendation: pt.recommendation || ""
+        }
+      }))
+    };
+
+    this.downloadFile(JSON.stringify(geojson, null, 2), filename, "application/geo+json");
+  },
+
+  /**
+   * Convert Decimal Degrees to DMS format (Degrees Minutes Seconds)
+   * @param {Number} lat 
+   * @param {Number} lng 
+   * @returns {String} e.g. 53°49′50″N, 23°38′40″E
+   */
+  convertToDMS: function(lat, lng) {
+    function toDMS(val, pos, neg) {
+      const dir = val >= 0 ? pos : neg;
+      const abs = Math.abs(val);
+      const deg = Math.floor(abs);
+      const minFloat = (abs - deg) * 60;
+      const min = Math.floor(minFloat);
+      const sec = ((minFloat - min) * 60).toFixed(1);
+      return `${deg}°${min.toString().padStart(2, '0')}′${sec.padStart(4, '0')}″${dir}`;
+    }
+    return `${toDMS(lat, 'N', 'S')}, ${toDMS(lng, 'E', 'W')}`;
+  },
+
+  /**
+   * Generate Printable Field Sheet HTML
+   * @param {Array} points 
+   * @returns {String} HTML for print
+   */
+  generatePrintableFieldSheet: function(points) {
+    let rowsHtml = points.map((p, i) => `
+      <tr>
+        <td style="font-weight:bold; font-family:monospace; white-space:nowrap;">${p.code || 'PT-' + (i+1)}</td>
+        <td>
+          <b>${p.name}</b><br/>
+          <small style="color:#555;">${p.unit || ''}</small>
+        </td>
+        <td style="font-family:monospace; white-space:nowrap; font-size:11px;">
+          ${p.lat.toFixed(5)}°N, ${p.lng.toFixed(5)}°E<br/>
+          <small style="color:#666;">${this.convertToDMS(p.lat, p.lng)}</small>
+        </td>
+        <td>${p.period || '1941/1944'}</td>
+        <td style="white-space:nowrap;">${p.depthEstimate || '—'}</td>
+        <td style="white-space:nowrap; font-weight:600;">${p.estimatedCasualties || '—'}</td>
+        <td style="font-size:11px; line-height:1.3;">${p.recommendation || p.description ? (p.recommendation || p.description).substring(0, 140) + '...' : '—'}</td>
+      </tr>
+    `).join('');
+
+    return `
+      <div class="print-field-sheet">
+        <div style="border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 12px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h2 style="margin:0; font-size:18px; text-transform:uppercase;">Полевой планшет поисковой экспедиции</h2>
+            <div style="font-size:12px; color:#444;">Гродненский район (1941, 1944 гг.) | Реестр GRO-Registry</div>
+          </div>
+          <div style="text-align:right; font-size:11px; font-family:monospace;">
+            Дата выгрузки: ${new Date().toLocaleDateString('ru-RU')} ${new Date().toLocaleTimeString('ru-RU')}<br/>
+            Всего объектов: ${points.length}
+          </div>
+        </div>
+
+        <table style="width:100%; border-collapse:collapse; font-size:12px;" border="1" cellpadding="6">
+          <thead>
+            <tr style="background:#e0e0e0;">
+              <th>Код</th>
+              <th>Объект / Подразделение</th>
+              <th>Координаты WGS84 (DD / DMS)</th>
+              <th>Период</th>
+              <th>Глубина</th>
+              <th>Потери</th>
+              <th>Рекомендации поисковой группе</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+
+        <div style="margin-top: 14px; font-size: 10px; color: #666; border-top: 1px dashed #999; padding-top: 6px; text-align:center;">
+          ГИС «ПОИСК-ГРОДНО 1941/1944» | База архивных данных ЦАМО РФ, NARA (США) и бланков военнопленных Stalag 324
+        </div>
+      </div>
+    `;
+  },
+
   escapeXML: function(str) {
     if (!str) return "";
     return String(str)
@@ -151,3 +264,4 @@ window.GPX_KML_UTILS = {
     }, 100);
   }
 };
+
