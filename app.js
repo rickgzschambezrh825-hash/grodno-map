@@ -152,6 +152,8 @@ document.addEventListener("DOMContentLoaded", function() {
     linkNavYandex: document.getElementById("linkNavYandex"),
     linkNavGoogle: document.getElementById("linkNavGoogle"),
     linkNavOSM: document.getElementById("linkNavOSM"),
+    linkDossierPamyat: document.getElementById("linkDossierPamyat"),
+    linkDossierOBD: document.getElementById("linkDossierOBD"),
     
     // Export Elements
     btnExportGPXAll: document.getElementById("btnExportGPXAll"),
@@ -819,6 +821,27 @@ document.addEventListener("DOMContentLoaded", function() {
             </div>
           ` : ""}
 
+          ${s.specificDocs && s.specificDocs.length > 0 ? `
+            <div class="source-docs-list">
+              <div class="source-docs-title">
+                <i class="fa-solid fa-file-circle-check"></i> Точные дела и документы фонда:
+              </div>
+              ${s.specificDocs.map(doc => {
+                const icon = doc.type === "zhbd" ? "fa-book-journal-whills" : (doc.type === "map" ? "fa-map-location-dot" : (doc.type === "casualties" ? "fa-skull" : "fa-file-lines"));
+                return `
+                  <a class="source-doc-item" href="${doc.url}" target="_blank" rel="noopener" title="Открыть конкретный первоисточник в архиве">
+                    <div class="doc-icon"><i class="fa-solid ${icon}"></i></div>
+                    <div class="doc-info">
+                      <div class="doc-title">${doc.title}</div>
+                      <div class="doc-code">${doc.archiveCode}</div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square doc-ext-icon"></i>
+                  </a>
+                `;
+              }).join("")}
+            </div>
+          ` : ""}
+
           <div class="source-actions-bar">
             ${matchingPts.length > 0 ? `
               <button class="btn-source-action btn-source-map" data-id="${s.id}" title="Показать все объекты этого соединения на карте">
@@ -986,6 +1009,18 @@ document.addEventListener("DOMContentLoaded", function() {
     el.dossierDescription.innerHTML = paragraphsHtml;
     el.dossierArchiveRef.textContent = pt.tsamoRef || "Архивные ссылки уточняются.";
     el.dossierRecommendation.textContent = pt.recommendation || "Провести стандартное визуальное обследование.";
+
+    // Deep search links for the specific point in TsAMO and OBD Memorial
+    if (el.linkDossierPamyat) {
+      const pamyatQuery = encodeURIComponent(`${pt.name} ${pt.unit || ""} ${pt.tsamoRef || ""}`.trim());
+      el.linkDossierPamyat.href = `https://pamyat-naroda.ru/documents/?q=${pamyatQuery}`;
+      el.linkDossierPamyat.title = `Искать документы в ЦАМО по объекту «${pt.name}»`;
+    }
+    if (el.linkDossierOBD) {
+      const obdQuery = encodeURIComponent(`${pt.name} ${pt.unit || ""}`.trim());
+      el.linkDossierOBD.href = `https://obd-memorial.ru/html/search.htm?fulltext=${obdQuery}`;
+      el.linkDossierOBD.title = `Искать списки погибших воинов по объекту «${pt.name}» в ОБД Мемориал`;
+    }
 
     el.dossierModal.style.display = "flex";
   }

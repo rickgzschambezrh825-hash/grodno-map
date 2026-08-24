@@ -18,8 +18,28 @@ window.GRODNO_GIS_DATA = {
       matchKeywords: ["86", "погран", "сивачев", "сивачева", "усов", "усова", "новики", "доргунь", "индура", "кириченко", "немново"],
       summary: "Приняли первый бой в 04:00 22 июня 1941 г. 1-я застава ст. лейтенанта Сивачева и 2-я застава капитана Усова вели многочасовые бои в полном окружении. Большинство пограничников пали в рукопашных схватках и заваленных капонирах.",
       fondDetails: "ЦАМО РФ / РГВА, Ф. 86 ПО НКВД, Опись 1, Дела 1, 3, 6 — Книга учета боевых действий застав, списки личного состава, донесения выживших.",
-      pamyatNarodaUrl: "https://pamyat-naroda.ru/documents/?q=86%20пограничный%20отряд",
-      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=86%20погранотряд%20НКВД"
+      pamyatNarodaUrl: "https://pamyat-naroda.ru/documents/?q=86%20Августовский%20пограничный%20отряд%20Книга%20учета%20боевых%20действий",
+      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=86%20пограничный%20отряд%20НКВД%20Сивачев%20Усов",
+      specificDocs: [
+        {
+          title: "Книга учета боевых действий 86-го Августовского погранотряда (22-25 июня 1941 г.)",
+          archiveCode: "ЦАМО / РГВА Ф. 86 ПО, оп. 1, д. 3",
+          type: "zhbd",
+          url: "https://pamyat-naroda.ru/documents/?q=86%20пограничный%20отряд%20Книга%20учета%20боевых%20действий"
+        },
+        {
+          title: "Боевое донесение о 11-часовом бое 1-й заставы ст. лейтенанта Сивачева у д. Новики",
+          archiveCode: "ЦАМО РФ, Ф. 86 ПО НКВД, оп. 1, д. 3, стр. 14-22",
+          type: "report",
+          url: "https://pamyat-naroda.ru/documents/?q=Сивачев%20Александр%20Николаевич%2086%20погранотряд"
+        },
+        {
+          title: "Именной список безвозвратных потерь пограничников 86 ПО (заставы Сивачева, Усова, Кириченко)",
+          archiveCode: "ОБД Мемориал / РГВА картотека",
+          type: "casualties",
+          url: "https://obd-memorial.ru/html/search.htm?fulltext=86%20пограничный%20отряд%20НКВД%20Сопоцкин"
+        }
+      ]
     },
     {
       id: "src-68ur",
@@ -32,8 +52,28 @@ window.GRODNO_GIS_DATA = {
       matchKeywords: ["68", "ур", "дот", "опаб", "кобылкин", "домбровка", "новики", "капонир"],
       summary: "Курсанты учебной роты 9-го опаб (лейтенант Кобылкин) и бойцы 213-го опаб заняли недостроенные ДОТы вечером 21 июня. ДОТ № 86 и № 85 держали оборону до 24 июня до подрыва входных сквозников штурмовыми группами саперов Вермахта.",
       fondDetails: "ЦАМО РФ, Ф. 68 УР, Опись 2, Дела 1-14 — Формуляры сооружений, схемы узлов обороны, боевые расчеты гарнизонов.",
-      pamyatNarodaUrl: "https://pamyat-naroda.ru/documents/?q=68%20укрепленный%20район",
-      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=68%20укрепленный%20район%20опаб"
+      pamyatNarodaUrl: "https://pamyat-naroda.ru/documents/?q=Фонд%2068%20УР%20Опись%202%20Дело%208%20Гродненский%20укрепленный%20район",
+      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=68%20укрепленный%20район%209%20опаб%20213%20опаб",
+      specificDocs: [
+        {
+          title: "Формуляры и схемы ДОТов Сопоцкинского узла обороны № 2 (ДОТ № 85, 86, 88)",
+          archiveCode: "ЦАМО РФ, Ф. 68 УР, оп. 2, д. 8",
+          type: "map",
+          url: "https://pamyat-naroda.ru/documents/?q=Фонд%2068%20УР%20Опись%202%20Дело%208"
+        },
+        {
+          title: "Боевые расчеты гарнизонов 9-го и 213-го отдельных пулеметных батальонов",
+          archiveCode: "ЦАМО РФ, Ф. 68 УР, оп. 2, д. 10",
+          type: "report",
+          url: "https://pamyat-naroda.ru/documents/?q=68%20укрепленный%20район%209%20опаб%20Кобылкин"
+        },
+        {
+          title: "Именной список защитников ДОТов 68-го УР, погибших в окружении у Сопоцкина",
+          archiveCode: "ОБД Мемориал / ЦАМО",
+          type: "casualties",
+          url: "https://obd-memorial.ru/html/search.htm?fulltext=68%20укрепленный%20район%20опаб%20Сопоцкин"
+        }
+      ]
     },
     {
       id: "src-56sd",
@@ -46,8 +86,28 @@ window.GRODNO_GIS_DATA = {
       matchKeywords: ["56", "37 сп", "182 сп", "213", "113 гап", "стрельчики", "ратичи", "подлабенье", "ювичи", "наумовичи", "форт iv", "форт v", "форт vi", "форт vii"],
       summary: "Приняла главный удар 8-го армейского корпуса Вермахта. 213-й и 182-й стрелковые полки закрепились в бетонных брустверах Фортов IV и V Гродненской крепости, сдерживая превосходящие силы противника на протяжении 36 часов.",
       fondDetails: "ЦАМО РФ, Ф. 1172, Опись 1, Дела 2, 3, 8 — Оперативные сводки, журналы боевых действий полков, донесения о потерях у Августовского канала.",
-      pamyatNarodaUrl: "https://pamyat-naroda.ru/warunit/id56%20сд/",
-      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=56%20стрелковая%20дивизия%201941"
+      pamyatNarodaUrl: "https://pamyat-naroda.ru/documents/?q=Фонд%201172%20Опись%201%20Дело%202%20Журнал%20боевых%20действий%2056%20сд",
+      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=56%20стрелковая%20дивизия%20213%20сп%20182%20сп%201941",
+      specificDocs: [
+        {
+          title: "Журнал боевых действий 56 сд за 22-26 июня 1941 г. (Оборона границы и фортов)",
+          archiveCode: "ЦАМО РФ, Ф. 1172, оп. 1, д. 2",
+          type: "zhbd",
+          url: "https://pamyat-naroda.ru/documents/?q=Фонд%201172%20Опись%201%20Дело%202%2056%20сд"
+        },
+        {
+          title: "Схема боевого порядка 213 сп и 182 сп на Фортах IV и V Гродненской крепости",
+          archiveCode: "ЦАМО РФ, Ф. 1172, оп. 1, д. 3",
+          type: "map",
+          url: "https://pamyat-naroda.ru/documents/?q=Фонд%201172%20Опись%201%20Дело%203%20схема"
+        },
+        {
+          title: "Именной список потерь 37-го, 182-го и 213-го стрелковых полков (Июнь 1941)",
+          archiveCode: "ЦАМО РФ, Ф. 1172, оп. 1, д. 8; ОБД Мемориал",
+          type: "casualties",
+          url: "https://obd-memorial.ru/html/search.htm?fulltext=56%20стрелковая%20дивизия%201941%20Гродно"
+        }
+      ]
     },
     {
       id: "src-11mk",
@@ -60,8 +120,28 @@ window.GRODNO_GIS_DATA = {
       matchKeywords: ["11", "мехкорпус", "29 тд", "33 тд", "святск", "конюхи", "танков", "мостовенко", "студнев", "т-26", "бт-7"],
       summary: "23-24 июня 1941 г. корпус нанес отчаянный контрудар силами легких танков Т-26 и БТ-7 во фланг наступающей 28-й пехотной дивизии немцев. Бой у дворцового парка Святск шел до темноты. Потери корпуса составили до 120 танков.",
       fondDetails: "ЦАМО РФ, Ф. 336, Опись 1, Дела 4, 7 — Доклады командира 11 мк, схемы встречного танкового боя под Святском и Сопоцкиным.",
-      pamyatNarodaUrl: "https://pamyat-naroda.ru/warunit/id11%20мехкорпус/",
-      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=29%20танковая%20дивизия%2011%20мехкорпус"
+      pamyatNarodaUrl: "https://pamyat-naroda.ru/documents/?q=Фонд%20336%20Опись%201%20Дело%204%20Доклад%20Мостовенко%2011%20мехкорпус",
+      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=29%20танковая%20дивизия%2033%20танковая%20дивизия%20Святск",
+      specificDocs: [
+        {
+          title: "Боевой доклад командира 11 мк генерал-майора Мостовенко о контрударе у Святска",
+          archiveCode: "ЦАМО РФ, Ф. 336, оп. 1, д. 4",
+          type: "report",
+          url: "https://pamyat-naroda.ru/documents/?q=Фонд%20336%20Опись%201%20Дело%204%20Мостовенко"
+        },
+        {
+          title: "Журнал боевых действий 29-й танковой дивизии (бои танков Т-26 под Святском)",
+          archiveCode: "ЦАМО РФ, Ф. 336, оп. 1, д. 7",
+          type: "zhbd",
+          url: "https://pamyat-naroda.ru/documents/?q=Фонд%20336%20Опись%201%20Дело%207%2029%20танковая%20дивизия"
+        },
+        {
+          title: "Именные списки танкистов 29 тд и 33 тд, погибших и сгоревших в танках под Гродно",
+          archiveCode: "ОБД Мемориал",
+          type: "casualties",
+          url: "https://obd-memorial.ru/html/search.htm?fulltext=29%20танковая%20дивизия%2011%20мехкорпус%20Святск"
+        }
+      ]
     },
     {
       id: "src-85sd",
@@ -74,8 +154,28 @@ window.GRODNO_GIS_DATA = {
       matchKeywords: ["85", "59 сп", "141 сп", "251 сп", "85 ап", "гожа", "гожск", "коптевка", "бондовский", "пышки"],
       summary: "Обороняла правобережную часть Гродно и переправы через Неман. После прорыва немецких танков 24 июня полки вели ночные бои в Гожском лесу, пытаясь прорваться из окружения к реке Котра. Потери дивизии превысили 60% состава.",
       fondDetails: "ЦАМО РФ, Ф. 1224, Опись 1, Дела 4, 9, 15 — Сводки безвозвратных потерь 59, 141, 251 сп, журнал боевых действий 85-го артполка.",
-      pamyatNarodaUrl: "https://pamyat-naroda.ru/warunit/id85%20сд/",
-      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=85%20стрелковая%20дивизия%20Гродно"
+      pamyatNarodaUrl: "https://pamyat-naroda.ru/documents/?q=Фонд%201224%20Опись%201%20Дело%204%20Сводка%20потерь%2085%20сд",
+      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=85%20стрелковая%20дивизия%2059%20сп%20141%20сп%20Гожа",
+      specificDocs: [
+        {
+          title: "Сводка безвозвратных потерь 85 сд при обороне Гродно и боях в Гожском лесу",
+          archiveCode: "ЦАМО РФ, Ф. 1224, оп. 1, д. 4",
+          type: "report",
+          url: "https://pamyat-naroda.ru/documents/?q=Фонд%201224%20Опись%201%20Дело%204%2085%20сд"
+        },
+        {
+          title: "Журнал боевых действий 85-го артиллерийского полка (бой на высоте у д. Коптевка)",
+          archiveCode: "ЦАМО РФ, Ф. 1224, оп. 1, д. 9",
+          type: "zhbd",
+          url: "https://pamyat-naroda.ru/documents/?q=Фонд%201224%20Опись%201%20Дело%209%2085%20артполк"
+        },
+        {
+          title: "Списки потерь и пропавших без вести 59-го, 141-го и 251-го стрелковых полков",
+          archiveCode: "ОБД Мемориал",
+          type: "casualties",
+          url: "https://obd-memorial.ru/html/search.htm?fulltext=85%20стрелковая%20дивизия%201941%20Гродно"
+        }
+      ]
     },
     {
       id: "src-3a",
@@ -88,8 +188,22 @@ window.GRODNO_GIS_DATA = {
       matchKeywords: ["3 а", "3-й арми", "кузнецов", "скидель", "котра", "свислочь", "каплица"],
       summary: "Координировала действия 56 сд, 85 сд, 11 мк и 68 УР. После рассечения фронта штаб армии с боями прорывался через Скидельские леса к реке Щара.",
       fondDetails: "ЦАМО РФ, Ф. 210, Опись 3214, Дела 2, 5, 12, 18 — Журнал боевых действий 3-й армии, боевые распоряжения, схемы отхода.",
-      pamyatNarodaUrl: "https://pamyat-naroda.ru/warunit/id3%20армия/",
-      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=3%20армия%20Гродно%201941"
+      pamyatNarodaUrl: "https://pamyat-naroda.ru/documents/?q=Фонд%20210%20Опись%203214%20Дело%202%20Журнал%20боевых%20действий%203%20армии",
+      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=3%20армия%20Гродно%20Скидель%20Котра%201941",
+      specificDocs: [
+        {
+          title: "Журнал боевых действий 3-й армии за июнь 1941 г. (Гродненское направление)",
+          archiveCode: "ЦАМО РФ, Ф. 210, оп. 3214, д. 2",
+          type: "zhbd",
+          url: "https://pamyat-naroda.ru/documents/?q=Фонд%20210%20Опись%203214%20Дело%202"
+        },
+        {
+          title: "Оперативные сводки штаба 3 А об отходе за реку Котра и боях у Скиделя",
+          archiveCode: "ЦАМО РФ, Ф. 210, оп. 3214, д. 5",
+          type: "report",
+          url: "https://pamyat-naroda.ru/documents/?q=Фонд%20210%20Опись%203214%20Дело%205%20Котра"
+        }
+      ]
     },
     {
       id: "src-2gvkav",
@@ -102,8 +216,28 @@ window.GRODNO_GIS_DATA = {
       matchKeywords: ["кавкорпус", "кавалерийск", "осликовск", "крюков", "пышки", "кавенешть", "сопоцкин"],
       summary: "16-18 июля 1944 г. кавалеристы форсировали Неман в спешенном строю под урочищем Пышки. В течение 5 дней гвардейцы вели непрерывные встречные бои с танковыми дивизиями СС «Тотенкопф» и «Великая Германия».",
       fondDetails: "ЦАМО РФ, Ф. 3470, Опись 1, Дела 45, 48, 52 — Журналы боевых действий 3-й и 4-й гв. кавдивизий за июль 1944 г., схемы переправ.",
-      pamyatNarodaUrl: "https://pamyat-naroda.ru/warunit/id2%20гв%20кавкорпус/",
-      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=2%20гвардейский%20кавалерийский%20корпус%20Неман"
+      pamyatNarodaUrl: "https://pamyat-naroda.ru/documents/?q=Фонд%203470%20Опись%201%20Дело%2045%20ЖБД%202%20гв%20кавкорпус",
+      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=2%20гвардейский%20кавалерийский%20корпус%20Пышки%20Неман%201944",
+      specificDocs: [
+        {
+          title: "Журнал боевых действий 2-го гв. кавкорпуса при форсировании Немана у Пышков",
+          archiveCode: "ЦАМО РФ, Ф. 3470, оп. 1, д. 45",
+          type: "zhbd",
+          url: "https://pamyat-naroda.ru/documents/?q=Фонд%203470%20Опись%201%20Дело%2045"
+        },
+        {
+          title: "ЖБД 3-й гвардейской кавалерийской дивизии (встречный бой у д. Кавенешть)",
+          archiveCode: "ЦАМО РФ, Ф. 3470, оп. 1, д. 48",
+          type: "zhbd",
+          url: "https://pamyat-naroda.ru/documents/?q=Фонд%203470%20Опись%201%20Дело%2048%20Кавенешть"
+        },
+        {
+          title: "Именные списки потерь гвардейцев-кавалеристов на плацдармах левого берега Немана",
+          archiveCode: "ОБД Мемориал",
+          type: "casualties",
+          url: "https://obd-memorial.ru/html/search.htm?fulltext=2%20гвардейский%20кавалерийский%20корпус%201944%20Гродно"
+        }
+      ]
     },
     {
       id: "src-31a",
@@ -116,8 +250,28 @@ window.GRODNO_GIS_DATA = {
       matchKeywords: ["31 а", "36 ск", "174 сд", "352 сд", "220 сд", "солы", "грандичи", "гродно", "румлево", "глаголев"],
       summary: "Штурмовые батальоны 174-й и 352-й сд освободили центральные кварталы Гродно 16 июля 1944 г. и форсировали Неман у Солов, отразив 8 танковых контратак противника.",
       fondDetails: "ЦАМО РФ, Ф. 386 (31 А), Опись 8583, Дела 124-135 — Журнал боевых действий 36 ск, схемы санитарных захоронений дивизий на левом берегу.",
-      pamyatNarodaUrl: "https://pamyat-naroda.ru/warunit/id31%20армия/",
-      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=31%20армия%20Гродно%201944"
+      pamyatNarodaUrl: "https://pamyat-naroda.ru/documents/?q=Фонд%20386%20Опись%208583%20Дело%20124%20ЖБД%2036%20ск%20Гродно",
+      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=174%20стрелковая%20дивизия%20352%20стрелковая%20дивизия%20Гродно%20Солы",
+      specificDocs: [
+        {
+          title: "Журнал боевых действий 36 ск при штурме Гродно (14-16 июля 1944 г.)",
+          archiveCode: "ЦАМО РФ, Ф. 386, оп. 8583, д. 124",
+          type: "zhbd",
+          url: "https://pamyat-naroda.ru/documents/?q=Фонд%20386%20Опись%208583%20Дело%20124"
+        },
+        {
+          title: "Схемы санитарных захоронений 174-й сд на плацдарме д. Солы — Грандичи",
+          archiveCode: "ЦАМО РФ, Ф. 386, оп. 8583, д. 129",
+          type: "map",
+          url: "https://pamyat-naroda.ru/documents/?q=Фонд%20386%20Опись%208583%20Дело%20129%20Солы"
+        },
+        {
+          title: "Списки потерь 174-й и 352-й сд при форсировании Немана в ОБД «Мемориал»",
+          archiveCode: "ОБД Мемориал",
+          type: "casualties",
+          url: "https://obd-memorial.ru/html/search.htm?fulltext=174%20стрелковая%20дивизия%201944%20Гродно"
+        }
+      ]
     },
     {
       id: "src-stalag324",
@@ -130,8 +284,22 @@ window.GRODNO_GIS_DATA = {
       matchKeywords: ["шталаг", "324", "фолюш", "военноплен", "лагерь", "пленный"],
       summary: "Через лагерь на Фолюше прошло свыше 36 000 советских военнопленных, в том числе раненые защитники 68-го УР и 56-й сд. Карточки учета военнопленных (PK I / PK III) являются ключевым источником дешифровки имен пропавших без вести.",
       fondDetails: "Архив Arolsen / ЦАМО РФ, Картотека военнопленных Dresden/Arolsen, карточки учета PK I, списки смертности лазарета.",
-      pamyatNarodaUrl: "https://pamyat-naroda.ru/heroes/?q=Шталаг%20324",
-      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=Шталаг%20324%20Гродно"
+      pamyatNarodaUrl: "https://pamyat-naroda.ru/heroes/?q=Шталаг%20324%20Гродно",
+      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=Шталаг%20324%20Гродно%20Фолюш",
+      specificDocs: [
+        {
+          title: "Картотека военнопленных Stalag 324 (карточки PK I, лазаретные книги Фолюш)",
+          archiveCode: "ЦАМО РФ / Arolsen Archives / Дрезден",
+          type: "report",
+          url: "https://pamyat-naroda.ru/heroes/?q=Шталаг%20324%20Гродно"
+        },
+        {
+          title: "Списки захороненных военнопленных в лагерных рвах Фолюша в ОБД «Мемориал»",
+          archiveCode: "ОБД Мемориал",
+          type: "casualties",
+          url: "https://obd-memorial.ru/html/search.htm?fulltext=Шталаг%20324%20Гродно%20Фолюш"
+        }
+      ]
     },
     {
       id: "src-nara-28jd",
@@ -144,9 +312,23 @@ window.GRODNO_GIS_DATA = {
       matchKeywords: ["28.", "jäger", "nara", "вермахт", "зиннхубер", "сопоцкин", "новики", "дот № 86"],
       summary: "Содержит немецкую поминутную хронику подавления ДОТов № 85, 86, 88 и боев с заставой Сивачева. Зафиксированы точные места подрыва бункеров саперами 28-го пионерного батальона и схемы трофейных захоронений.",
       fondDetails: "National Archives and Records Administration (USA), Record Group 242, Microfilm Publication T-315, Roll 841 (KTB 28. Inf.Div. Juni 1941).",
-      pamyatNarodaUrl: "https://pamyat-naroda.ru/documents/?q=28%20пехотная%20дивизия%20Гродно",
+      pamyatNarodaUrl: "https://pamyat-naroda.ru/documents/?q=28%20пехотная%20дивизия%20Сопоцкин%20ДОТ%2086",
       obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=Сопоцкин%2022%20июня%201941",
-      naraUrl: "https://catalog.archives.gov/id/657385"
+      naraUrl: "https://catalog.archives.gov/id/657385",
+      specificDocs: [
+        {
+          title: "Kriegstagebuch (KTB) 28. Infanterie-Division (22-25 июня 1941) — Roll 841",
+          archiveCode: "NARA T-315, Roll 841, Frames 0001-0450",
+          type: "zhbd",
+          url: "https://catalog.archives.gov/id/657385"
+        },
+        {
+          title: "Отчет саперов 28-го пионерного батальона о подрывах ДОТов № 85, 86 у Новиков",
+          archiveCode: "NARA T-315, Roll 841 / ЦАМО перевод",
+          type: "report",
+          url: "https://pamyat-naroda.ru/documents/?q=28%20пехотная%20дивизия%20Сопоцкин%20ДОТ%2086"
+        }
+      ]
     },
     {
       id: "src-nara-aerial",
@@ -161,7 +343,15 @@ window.GRODNO_GIS_DATA = {
       fondDetails: "NARA Record Group 373, Cartographic & Aerial Photography Division, Sorties GX 12450-SD, GX 12451-SD, GX 12455-SK (1941, 1944).",
       pamyatNarodaUrl: "https://pamyat-naroda.ru/documents/?q=аэрофотосъемка%20Гродно",
       obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=Гродно%20аэрофотосъемка",
-      naraUrl: "https://catalog.archives.gov/id/306059"
+      naraUrl: "https://catalog.archives.gov/id/306059",
+      specificDocs: [
+        {
+          title: "Снимки аэрофотосъемки Люфтваффе GX 12450-SD (переправы Немана и форты)",
+          archiveCode: "NARA RG-373, Sortie GX 12450-SD",
+          type: "map",
+          url: "https://catalog.archives.gov/id/306059"
+        }
+      ]
     },
     {
       id: "src-gro-registry",
@@ -174,8 +364,16 @@ window.GRODNO_GIS_DATA = {
       matchKeywords: ["лютик", "денисова", "gro-", "регистр", "укрепрайон", "опаб"],
       summary: "Фундаментальный труд с архивной идентификацией каждого бетонного сооружения 68-го УР, номеров гарнизонов, командиров и обстоятельств подрыва в июне 1941 года.",
       fondDetails: "Монография «Гродненский укрепрайон 1940-1941 гг.», Минск, 2020; База данных геопривязанных реперов GRO-Registry.",
-      pamyatNarodaUrl: "https://pamyat-naroda.ru/documents/?q=Гродненский%20укрепрайон",
-      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=Гродненский%20укрепленный%20район"
+      pamyatNarodaUrl: "https://pamyat-naroda.ru/documents/?q=Гродненский%20укрепленный%20район%2068%20УР",
+      obdMemorialUrl: "https://obd-memorial.ru/html/search.htm?fulltext=Гродненский%20укрепленный%20район",
+      specificDocs: [
+        {
+          title: "Реестр геопривязанных ДОТов Сопоцкинского и Доргуньского УРов (GRO-Registry)",
+          archiveCode: "Монография Д. Лютика / GRO-Registry 2020",
+          type: "map",
+          url: "https://pamyat-naroda.ru/documents/?q=Гродненский%20укрепленный%20район%20Новики"
+        }
+      ]
     }
   ],
 

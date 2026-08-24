@@ -552,6 +552,79 @@ html, body {
   line-height: 1.4;
 }
 
+.source-docs-list {
+  margin: 10px 0;
+  background-color: rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.source-docs-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-accent-amber);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.source-doc-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  margin-bottom: 5px;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+.source-doc-item:last-child {
+  margin-bottom: 0;
+}
+.source-doc-item:hover {
+  background-color: rgba(243, 156, 18, 0.12);
+  border-color: var(--color-accent-amber);
+  transform: translateX(2px);
+}
+.doc-icon {
+  color: var(--color-accent-amber);
+  font-size: 13px;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.doc-info {
+  flex: 1;
+  min-width: 0;
+}
+.doc-title {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-main);
+  line-height: 1.3;
+}
+.doc-code {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 1px;
+}
+.doc-ext-icon {
+  color: var(--text-dim);
+  font-size: 10px;
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
+}
+.source-doc-item:hover .doc-ext-icon {
+  color: var(--color-accent-amber);
+}
+
 .source-actions-bar {
   display: flex;
   flex-wrap: wrap;
