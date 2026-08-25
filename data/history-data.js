@@ -549,33 +549,45 @@ window.GRODNO_GIS_DATA = {
   categories: {
     "official_memorial": {
       name: "Официальные воинские захоронения",
+      label: "Официальные мемориалы",
       color: "#ff3b30",
-      icon: "fa-monument"
+      icon: "monument"
     },
     "prospective_burial": {
       name: "Перспективные неучтенные захоронения",
+      label: "Перспективные неучтенки",
       color: "#ff9500",
-      icon: "fa-crosshairs"
+      icon: "crosshairs"
     },
     "san_burial": {
       name: "Санитарные захоронения и прикопы",
+      label: "Санзахоронения / Воронки",
       color: "#af52de",
-      icon: "fa-skull"
+      icon: "skull"
     },
     "fortification": {
       name: "ДОТы, форты и капониры",
+      label: "ДОТы / Форты / Блиндажи",
       color: "#007aff",
-      icon: "fa-shield-halved"
+      icon: "shield-halved"
     },
     "river_crossing": {
       name: "Переправы и плацдармы Немана",
+      label: "Переправы / Места боев",
       color: "#34c759",
-      icon: "fa-water"
+      icon: "water"
+    },
+    "field_finding": {
+      name: "Полевые находки экспедиции",
+      label: "Полевые находки",
+      color: "#5856d6",
+      icon: "location-dot"
     },
     "user_point": {
       name: "Пользовательские поисковые точки",
+      label: "Пользовательские точки",
       color: "#5856d6",
-      icon: "fa-location-dot"
+      icon: "location-dot"
     }
   },
 
@@ -1388,28 +1400,70 @@ window.GRODNO_GIS_DATA = {
     }
   ],
 
-  // Vector Frontlines Coordinates
+  // Vector Frontlines Coordinates (GeoJSON FeatureCollection)
   vectorFrontlines: {
-    "1941_border": [
-      [53.880, 23.500],
-      [53.850, 23.580],
-      [53.815, 23.610],
-      [53.770, 23.630],
-      [53.700, 23.660],
-      [53.600, 23.700],
-      [53.460, 23.880]
-    ],
-    "1941_counterattack_11mk": [
-      [53.765, 23.642],
-      [53.797, 23.664],
-      [53.748, 23.671],
-      [53.692, 23.712]
-    ],
-    "1944_neman_crossing": [
-      [53.740, 23.835],
-      [53.725, 23.815],
-      [53.702, 23.821],
-      [53.680, 23.820]
+    type: "FeatureCollection",
+    features: [
+      {
+        type: "Feature",
+        properties: {
+          id: "1941_border",
+          name: "Рубеж обороны 1941 г. (86-й Августовский ПО НКВД и 56-я сд)",
+          period: "1941",
+          color: "#e74c3c",
+          dashArray: "8, 4"
+        },
+        geometry: {
+          type: "LineString",
+          coordinates: [
+            [23.500, 53.880],
+            [23.580, 53.850],
+            [23.610, 53.815],
+            [23.630, 53.770],
+            [23.660, 53.700],
+            [23.700, 53.600],
+            [23.880, 53.460]
+          ]
+        }
+      },
+      {
+        type: "Feature",
+        properties: {
+          id: "1941_counterattack_11mk",
+          name: "Контрудар 11-го мехкорпуса и 85-й сд (23-24 июня 1941 г.)",
+          period: "1941",
+          color: "#e67e22",
+          dashArray: "4, 4"
+        },
+        geometry: {
+          type: "LineString",
+          coordinates: [
+            [23.642, 53.765],
+            [23.664, 53.797],
+            [23.671, 53.748],
+            [23.712, 53.692]
+          ]
+        }
+      },
+      {
+        type: "Feature",
+        properties: {
+          id: "1944_neman_crossing",
+          name: "Рубеж форсирования р. Неман (16-19 июля 1944 г. - 31 А, 50 А, 2-й и 3-й гв. кк)",
+          period: "1944",
+          color: "#2ecc71",
+          dashArray: "6, 4"
+        },
+        geometry: {
+          type: "LineString",
+          coordinates: [
+            [23.835, 53.740],
+            [23.815, 53.725],
+            [23.821, 53.702],
+            [23.820, 53.680]
+          ]
+        }
+      }
     ]
   }
 };

@@ -520,71 +520,83 @@ document.addEventListener("DOMContentLoaded", function() {
     const geojson = state.data.vectorFrontlines;
     if (!geojson) return;
 
-    vectorLayer1941Main = L.geoJSON(geojson, {
-      filter: feature => feature.properties.period === "1941",
-      style: feature => ({
-        color: feature.properties.color || "#e74c3c",
-        weight: 3,
-        dashArray: feature.properties.dashArray !== "None" ? feature.properties.dashArray : null,
-        opacity: 0.8
-      }),
-      onEachFeature: (feature, layer) => {
-        layer.bindTooltip(feature.properties.name, { sticky: true });
+    try {
+      vectorLayer1941Main = L.geoJSON(geojson, {
+        filter: feature => feature && feature.properties && feature.properties.period === "1941",
+        style: feature => ({
+          color: (feature && feature.properties && feature.properties.color) || "#e74c3c",
+          weight: 3,
+          dashArray: (feature && feature.properties && feature.properties.dashArray !== "None") ? feature.properties.dashArray : null,
+          opacity: 0.8
+        }),
+        onEachFeature: (feature, layer) => {
+          if (feature && feature.properties && feature.properties.name) {
+            layer.bindTooltip(feature.properties.name, { sticky: true });
+          }
+        }
+      }).addTo(mainMap);
+
+      vectorLayer1944Main = L.geoJSON(geojson, {
+        filter: feature => feature && feature.properties && feature.properties.period === "1944",
+        style: feature => ({
+          color: (feature && feature.properties && feature.properties.color) || "#2ecc71",
+          weight: 3,
+          dashArray: (feature && feature.properties && feature.properties.dashArray !== "None") ? feature.properties.dashArray : null,
+          opacity: 0.8
+        }),
+        onEachFeature: (feature, layer) => {
+          if (feature && feature.properties && feature.properties.name) {
+            layer.bindTooltip(feature.properties.name, { sticky: true });
+          }
+        }
+      }).addTo(mainMap);
+
+      vectorLayer1941Split = L.geoJSON(geojson, {
+        filter: feature => feature && feature.properties && feature.properties.period === "1941",
+        style: feature => ({
+          color: (feature && feature.properties && feature.properties.color) || "#e74c3c",
+          weight: 3,
+          dashArray: (feature && feature.properties && feature.properties.dashArray !== "None") ? feature.properties.dashArray : null,
+          opacity: 0.85
+        })
+      }).addTo(splitMap);
+
+      vectorLayer1944Split = L.geoJSON(geojson, {
+        filter: feature => feature && feature.properties && feature.properties.period === "1944",
+        style: feature => ({
+          color: (feature && feature.properties && feature.properties.color) || "#2ecc71",
+          weight: 3,
+          dashArray: (feature && feature.properties && feature.properties.dashArray !== "None") ? feature.properties.dashArray : null,
+          opacity: 0.85
+        })
+      }).addTo(splitMap);
+
+      if (el.chkFrontlines1941) {
+        el.chkFrontlines1941.addEventListener("change", function(e) {
+          if (e.target.checked) {
+            if (vectorLayer1941Main) mainMap.addLayer(vectorLayer1941Main);
+            if (vectorLayer1941Split) splitMap.addLayer(vectorLayer1941Split);
+          } else {
+            if (vectorLayer1941Main) mainMap.removeLayer(vectorLayer1941Main);
+            if (vectorLayer1941Split) splitMap.removeLayer(vectorLayer1941Split);
+          }
+        });
       }
-    }).addTo(mainMap);
 
-    vectorLayer1944Main = L.geoJSON(geojson, {
-      filter: feature => feature.properties.period === "1944",
-      style: feature => ({
-        color: feature.properties.color || "#2ecc71",
-        weight: 3,
-        dashArray: feature.properties.dashArray !== "None" ? feature.properties.dashArray : null,
-        opacity: 0.8
-      }),
-      onEachFeature: (feature, layer) => {
-        layer.bindTooltip(feature.properties.name, { sticky: true });
+      if (el.chkFrontlines1944) {
+        el.chkFrontlines1944.addEventListener("change", function(e) {
+          if (e.target.checked) {
+            if (vectorLayer1944Main) mainMap.addLayer(vectorLayer1944Main);
+            if (vectorLayer1944Split) splitMap.addLayer(vectorLayer1944Split);
+          } else {
+            if (vectorLayer1944Main) mainMap.removeLayer(vectorLayer1944Main);
+            if (vectorLayer1944Split) splitMap.removeLayer(vectorLayer1944Split);
+          }
+        });
       }
-    }).addTo(mainMap);
-
-    vectorLayer1941Split = L.geoJSON(geojson, {
-      filter: feature => feature.properties.period === "1941",
-      style: feature => ({
-        color: feature.properties.color || "#e74c3c",
-        weight: 3,
-        dashArray: feature.properties.dashArray !== "None" ? feature.properties.dashArray : null,
-        opacity: 0.85
-      })
-    }).addTo(splitMap);
-
-    vectorLayer1944Split = L.geoJSON(geojson, {
-      filter: feature => feature.properties.period === "1944",
-      style: feature => ({
-        color: feature.properties.color || "#2ecc71",
-        weight: 3,
-        dashArray: feature.properties.dashArray !== "None" ? feature.properties.dashArray : null,
-        opacity: 0.85
-      })
-    }).addTo(splitMap);
-
-    el.chkFrontlines1941.addEventListener("change", function(e) {
-      if (e.target.checked) {
-        mainMap.addLayer(vectorLayer1941Main);
-        splitMap.addLayer(vectorLayer1941Split);
-      } else {
-        mainMap.removeLayer(vectorLayer1941Main);
-        splitMap.removeLayer(vectorLayer1941Split);
-      }
-    });
-
-    el.chkFrontlines1944.addEventListener("change", function(e) {
-      if (e.target.checked) {
-        mainMap.addLayer(vectorLayer1944Main);
-        splitMap.addLayer(vectorLayer1944Split);
-      } else {
-        mainMap.removeLayer(vectorLayer1944Main);
-        splitMap.removeLayer(vectorLayer1944Split);
-      }
-    });
+    } catch (err) {
+      console.warn("Ошибка инициализации векторных слоев рубежей:", err);
+    }
   }
 
   /* ==========================================================================
@@ -601,17 +613,20 @@ document.addEventListener("DOMContentLoaded", function() {
     const filteredPoints = getFilteredPoints();
 
     filteredPoints.forEach(pt => {
-      const catConfig = state.data.categories[pt.category] || {
+      const catConfig = (state.data.categories && state.data.categories[pt.category]) || {
         icon: "map-pin",
-        color: "#2ecc71"
+        color: "#2ecc71",
+        label: pt.category
       };
 
       const isHighPriority = pt.category === "prospective_burial";
+      const iconName = (catConfig.icon || "map-pin").replace(/^fa-/, "");
+      const iconColor = catConfig.color || "#2ecc71";
 
       const customHtml = `
         <div class="tactical-leaflet-marker ${isHighPriority ? "marker-pulse" : ""}" 
-             style="background-color: ${catConfig.color}; width:32px; height:32px;">
-          <i class="fa-solid fa-${catConfig.icon}"></i>
+             style="background-color: ${iconColor}; width:32px; height:32px;">
+          <i class="fa-solid fa-${iconName}"></i>
         </div>
       `;
 
@@ -686,7 +701,9 @@ document.addEventListener("DOMContentLoaded", function() {
 
     let html = "";
     points.forEach(pt => {
-      const catConfig = state.data.categories[pt.category] || { label: pt.category, color: "#2ecc71" };
+      const catConfig = (state.data.categories && state.data.categories[pt.category]) || { label: pt.category, color: "#2ecc71" };
+      const catLabel = catConfig.label || catConfig.name || pt.category;
+      const catColor = catConfig.color || "#2ecc71";
       const isSelected = pt.id === state.selectedPointId;
 
       // DYNAMIC SOURCE BADGE DETERMINATION
@@ -703,11 +720,11 @@ document.addEventListener("DOMContentLoaded", function() {
       html += `
         <div class="point-card ${isSelected ? "selected" : ""}" data-id="${pt.id}">
           <div class="point-card-header">
-            <span class="point-code" style="background-color: ${catConfig.color}; color: #fff;">${pt.code || pt.id}</span>
+            <span class="point-code" style="background-color: ${catColor}; color: #fff;">${pt.code || pt.id}</span>
             <span class="point-title">${pt.name}</span>
           </div>
           <div class="point-meta">
-            <span class="point-meta-item"><i class="fa-solid fa-tag"></i> ${catConfig.label}</span>
+            <span class="point-meta-item"><i class="fa-solid fa-tag"></i> ${catLabel}</span>
             <span class="point-meta-item"><i class="fa-solid fa-calendar-days"></i> ${pt.period}</span>
             ${pt.estimatedCasualties ? `<span class="point-meta-item" style="color:var(--color-accent-amber);"><i class="fa-solid fa-skull"></i> ${pt.estimatedCasualties}</span>` : ""}
           </div>
@@ -1113,12 +1130,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
   function openDossierModal(pt) {
     currentDossierPoint = pt;
-    const catConfig = state.data.categories[pt.category] || { label: pt.category, color: "#2ecc71" };
+    const catConfig = (state.data.categories && state.data.categories[pt.category]) || { label: pt.category, color: "#2ecc71" };
+    const catLabel = catConfig.label || catConfig.name || pt.category;
+    const catColor = catConfig.color || "#2ecc71";
 
     el.dossierCodeBadge.textContent = pt.code || pt.id;
-    el.dossierCodeBadge.style.backgroundColor = catConfig.color;
+    el.dossierCodeBadge.style.backgroundColor = catColor;
     el.dossierTitle.textContent = pt.name;
-    el.dossierCategory.textContent = catConfig.label;
+    el.dossierCategory.textContent = catLabel;
     el.dossierPeriod.textContent = pt.period || "1941/1944";
     el.dossierUnit.textContent = pt.unit || "Н/Д";
     el.dossierDepth.textContent = pt.depthEstimate || "Н/Д";
@@ -1566,6 +1585,10 @@ document.addEventListener("DOMContentLoaded", function() {
      ========================================================================== */
   function initMobileDock() {
     if (!el.mobileBottomDock) return;
+
+    if (window.innerWidth <= 768) {
+      el.sidebar.classList.add("collapsed");
+    }
 
     const updateDockActive = btn => {
       document.querySelectorAll(".mobile-dock-btn").forEach(b => b.classList.remove("active"));

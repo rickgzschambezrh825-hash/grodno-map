@@ -199,22 +199,44 @@ html, body {
 }
 .btn-secondary:hover { background-color: var(--bg-card-hover); }
 
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+  min-height: 36px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
 .btn-danger-sm {
-  padding: 4px 8px;
-  font-size: 11px;
+  padding: 6px 10px;
+  font-size: 12px;
+  min-height: 36px;
   background-color: rgba(231, 76, 60, 0.2);
   border: 1px solid var(--color-accent-red);
   color: var(--color-accent-red);
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
 }
 .btn-danger-sm:hover { background-color: var(--color-accent-red); color: white; }
 
 .btn-icon {
   padding: 8px 10px;
+  min-width: 38px;
+  min-height: 38px;
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   color: var(--text-main);
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .form-select, .form-input, .form-textarea {
@@ -289,35 +311,48 @@ html, body {
   border: none;
   color: var(--text-muted);
   cursor: pointer;
-  padding: 4px;
+  padding: 8px;
+  min-width: 36px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .filter-group label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   display: block;
 }
 
 .filter-pills {
   display: flex;
-  gap: 4px;
+  gap: 6px;
 }
 .pill {
   flex: 1;
-  padding: 6px;
-  font-size: 11px;
+  padding: 8px 10px;
+  min-height: 38px;
+  font-size: 12px;
   font-weight: 600;
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   color: var(--text-muted);
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: all var(--transition-fast);
+}
+.pill:hover {
+  background-color: var(--bg-card-hover);
+  color: var(--text-main);
 }
 .pill.active {
   background-color: var(--color-accent-blue);
@@ -333,15 +368,24 @@ html, body {
 }
 .tab-btn {
   flex: 1;
-  padding: 10px 1px;
+  padding: 12px 6px;
+  min-height: 44px;
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   transition: all var(--transition-fast);
+}
+.tab-btn:hover {
+  color: var(--text-main);
+  background-color: var(--bg-card-hover);
 }
 .tab-btn.active {
   color: var(--color-accent-green);
@@ -749,34 +793,35 @@ html, body {
 }
 .point-code {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  padding: 2px 6px;
+  padding: 3px 8px;
   border-radius: 4px;
 }
 .point-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-main);
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .point-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   margin-bottom: 8px;
 }
 .point-meta-item {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .point-desc-short {
-  font-size: 12px;
+  font-size: 12.5px;
+  line-height: 1.45;
   color: var(--text-muted);
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1011,10 +1056,26 @@ html, body {
   position: absolute;
   bottom: 20px;
   right: 20px;
-  z-index: 600;
+  z-index: 1050;
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.hud-locate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-locate .btn {
+  min-width: 38px;
+  min-height: 38px;
+  padding: 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .hud-coords {
@@ -1031,14 +1092,14 @@ html, body {
 
 .floating-panel {
   position: absolute;
-  top: 20px;
+  top: 70px;
   right: 20px;
-  z-index: 600;
-  background-color: rgba(18, 21, 24, 0.92);
+  z-index: 1100;
+  background-color: rgba(18, 21, 24, 0.94);
   backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  width: 300px;
+  width: 320px;
   box-shadow: var(--box-shadow-card);
 }
 
@@ -1049,7 +1110,7 @@ html, body {
   justify-content: space-between;
   align-items: center;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .panel-body {
@@ -1068,6 +1129,19 @@ html, body {
   border: none;
   color: var(--text-muted);
   cursor: pointer;
+  padding: 6px;
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+.btn-close-sm:hover {
+  color: var(--text-main);
+  background-color: var(--bg-card-hover);
 }
 
 .tactical-leaflet-marker {
@@ -1895,41 +1969,56 @@ kbd {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 12px;
+    padding: 10px 14px;
     background: var(--bg-card);
     border-bottom: 1px solid var(--border-color);
   }
   .sidebar-mobile-handle {
-    width: 36px;
-    height: 4px;
+    width: 40px;
+    height: 5px;
     background: var(--border-highlight);
-    border-radius: 2px;
+    border-radius: 3px;
     margin: 0 auto;
   }
   .btn-sidebar-close-mobile {
     background: none;
     border: none;
     color: var(--color-accent-blue);
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    padding: 10px 14px;
+    min-height: 44px;
+    border-radius: 6px;
+  }
+  .btn-sidebar-close-mobile:active {
+    background-color: rgba(52, 152, 219, 0.15);
   }
 
-  .gps-nav-panel {
-    top: auto;
-    bottom: 70px;
+  .measure-panel {
+    top: 56px;
     left: 10px;
     right: 10px;
     width: auto;
+    z-index: 1100;
+  }
+  .gps-nav-panel {
+    top: auto;
+    bottom: calc(65px + env(safe-area-inset-bottom, 0));
+    left: 10px;
+    right: 10px;
+    width: auto;
+    z-index: 1100;
   }
   .track-recorder-panel {
     top: 56px;
     left: 10px;
     right: 10px;
     width: auto;
+    z-index: 1100;
   }
 
   .map-hud-overlay {
@@ -1937,21 +2026,29 @@ kbd {
     right: 10px;
     left: 10px;
     justify-content: space-between;
+    z-index: 1050;
   }
   .hud-coords {
-    font-size: 11px;
-    padding: 5px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 10px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 220px;
+    max-width: 240px;
+  }
+  .hud-locate .btn {
+    min-width: 42px;
+    min-height: 42px;
+    font-size: 16px;
   }
 
   /* Split badges on mobile */
   .split-side-badge {
-    font-size: 9px;
-    padding: 4px 8px;
-    top: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 5px 10px;
+    top: 10px;
   }
   .split-badge-left { left: 8px; }
   .split-badge-right { right: 8px; }
@@ -1962,20 +2059,21 @@ kbd {
     margin: auto 6px;
   }
   .modal-header {
-    padding: 12px 14px;
+    padding: 14px 16px;
   }
   .modal-body {
-    padding: 14px;
+    padding: 14px 16px;
   }
   .modal-footer {
-    padding: 10px 14px;
+    padding: 12px 14px;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
   }
   .modal-footer .btn {
     flex: 1;
-    font-size: 12px;
-    padding: 8px 10px;
+    font-size: 13px;
+    min-height: 42px;
+    padding: 10px 12px;
   }
   .dossier-grid {
     grid-template-columns: 1fr;
@@ -1985,6 +2083,10 @@ kbd {
   }
   .coord-helper-buttons {
     flex-direction: column;
+    gap: 6px;
+  }
+  .coord-helper-buttons .btn {
+    min-height: 38px;
   }
 }
 

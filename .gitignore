@@ -17,3 +17,8 @@ grodno_aerial_output/
 # Local OS files
 .DS_Store
 Thumbs.db
+
+# Test scripts and audit results
+test_*.js
+test_*.py
+ui-test-results/
