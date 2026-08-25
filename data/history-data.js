@@ -495,53 +495,6 @@ window.GRODNO_GIS_DATA = {
       attribution: "&copy; CartoDB Voyager",
       maxZoom: 19,
       isBase: true
-    },
-
-    // Historical Overlays (Stylized Digital Views)
-    {
-      id: "rkka_1941",
-      name: "Топографическая карта местности (рельефная стилизация под РККА Генштаб)",
-      type: "tile",
-      url: "https://tile.opentopomap.org/{z}/{x}/{y}.png",
-      className: "layer-rkka-1941",
-      attribution: "Топооснова OpenTopoMap / Рельефная стилизация под гамму Генштаба РККА",
-      opacity: 0.85,
-      isOverlay: true,
-      description: "Современная топографическая основа с контрастной рельефной стилизацией под палитру карт Генерального штаба РККА (высоты, горизонтали, рельеф)."
-    },
-    {
-      id: "german_messtischblatt",
-      name: "Топографическая карта местности (монохромная стилизация)",
-      type: "tile",
-      url: "https://tile.opentopomap.org/{z}/{x}/{y}.png",
-      className: "layer-german-map",
-      attribution: "Топооснова OpenTopoMap / Монохромный режим рельефа",
-      opacity: 0.85,
-      isOverlay: true,
-      description: "Высококонтрастная монохромная гравированная стилизация для анализа отметок высот и форм рельефа."
-    },
-    {
-      id: "wig_1930",
-      name: "Топографическая карта местности (сепия-стилизация)",
-      type: "tile",
-      url: "https://tile.opentopomap.org/{z}/{x}/{y}.png",
-      className: "layer-wig-map",
-      attribution: "Топооснова OpenTopoMap / Сепия-стилизация",
-      opacity: 0.85,
-      isOverlay: true,
-      description: "Стилизованная топографическая карта для анализа исторической хуторской сети и дорог."
-    },
-    {
-      id: "aerophoto_1944",
-      name: "Спутниковая съемка сверхвысокого разрешения (контрастный монохромный режим)",
-      type: "tile",
-      url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      className: "layer-aerial-recon",
-      attribution: "Esri World Imagery / Монохромный спектральный режим дешифровки",
-      opacity: 0.90,
-      isOverlay: true,
-      hasNaraFootprints: true,
-      description: "Спутниковые снимки высокой четкости в монохромном спектре для выявления микрорельефа, окопных линий и воронок."
     }
   ],
 

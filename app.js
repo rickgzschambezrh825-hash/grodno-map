@@ -177,9 +177,9 @@ document.addEventListener("DOMContentLoaded", function() {
     
     // Layer Controls
     baseMapOptions: document.getElementById("baseMapOptions"),
-    overlayLayersOptions: document.getElementById("overlayLayersOptions"),
     chkFrontlines1941: document.getElementById("chkFrontlines1941"),
-    chkFrontlines1944: document.getElementById("chkFrontlines1944")
+    chkFrontlines1944: document.getElementById("chkFrontlines1944"),
+    chkNaraAerialFootprints: document.getElementById("chkNaraAerialFootprints")
   };
 
   // Map & Layer Variables
@@ -444,73 +444,21 @@ document.addEventListener("DOMContentLoaded", function() {
       naraFootprintsSplit.addLayer(rectSplit);
     });
 
-    // Historical Overlay Layers Setup
-    const overlays = layers.filter(l => l.isOverlay);
-    overlays.forEach(l => {
-      let overlayMain = L.tileLayer(l.url, {
-        attribution: l.attribution,
-        opacity: l.opacity || 0.85,
-        zIndex: 10,
-        className: l.className || "",
-        maxZoom: 18
-      });
-      let overlaySplit = L.tileLayer(l.url, {
-        opacity: l.opacity || 0.85,
-        zIndex: 10,
-        className: l.className || "",
-        maxZoom: 18
-      });
+    // Add NARA Aerial Footprints to maps initially
+    naraFootprintsMain.addTo(mainMap);
+    naraFootprintsSplit.addTo(splitMap);
 
-      overlayLayersMain[l.id] = overlayMain;
-      overlayLayersSplit[l.id] = overlaySplit;
-
-      const overlayHtml = `
-        <div class="layer-checkbox-item">
-          <label class="layer-item-header">
-            <input type="checkbox" data-overlay="${l.id}">
-            <span>${l.name}</span>
-          </label>
-          ${l.description ? `<div class="layer-desc" style="font-size:11px; color:var(--text-dim); margin:2px 0 5px 22px; line-height:1.3;">${l.description}</div>` : ""}
-          <div class="opacity-slider-wrapper" style="display:none;" id="opacityWrap_${l.id}">
-            <span>Прозрачность:</span>
-            <input type="range" min="0" max="1" step="0.05" value="${l.opacity || 0.85}" data-slider="${l.id}">
-          </div>
-        </div>
-      `;
-      el.overlayLayersOptions.insertAdjacentHTML("beforeend", overlayHtml);
-    });
-
-    el.overlayLayersOptions.addEventListener("change", function(e) {
-      const overlayId = e.target.dataset.overlay;
-      const sliderId = e.target.dataset.slider;
-
-      if (overlayId) {
-        const wrap = document.getElementById(`opacityWrap_${overlayId}`);
+    if (el.chkNaraAerialFootprints) {
+      el.chkNaraAerialFootprints.addEventListener("change", function(e) {
         if (e.target.checked) {
-          overlayLayersMain[overlayId].addTo(mainMap);
-          overlayLayersSplit[overlayId].addTo(splitMap);
-          if (overlayId === "aerophoto_1944") {
-            naraFootprintsMain.addTo(mainMap);
-            naraFootprintsSplit.addTo(splitMap);
-          }
-          if (wrap) wrap.style.display = "flex";
+          mainMap.addLayer(naraFootprintsMain);
+          splitMap.addLayer(naraFootprintsSplit);
         } else {
-          mainMap.removeLayer(overlayLayersMain[overlayId]);
-          splitMap.removeLayer(overlayLayersSplit[overlayId]);
-          if (overlayId === "aerophoto_1944") {
-            mainMap.removeLayer(naraFootprintsMain);
-            splitMap.removeLayer(naraFootprintsSplit);
-          }
-          if (wrap) wrap.style.display = "none";
+          mainMap.removeLayer(naraFootprintsMain);
+          splitMap.removeLayer(naraFootprintsSplit);
         }
-      }
-
-      if (sliderId && overlayLayersMain[sliderId]) {
-        const op = parseFloat(e.target.value);
-        overlayLayersMain[sliderId].setOpacity(op);
-        overlayLayersSplit[sliderId].setOpacity(op);
-      }
-    });
+      });
+    }
   }
 
   /* ==========================================================================

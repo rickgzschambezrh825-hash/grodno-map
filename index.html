@@ -140,20 +140,26 @@
 
       <!-- Navigation Tabs -->
       <div class="sidebar-tabs">
-        <button class="tab-btn active" data-tab="tabPoints">
-          <i class="fa-solid fa-list-check"></i> Точки (<span id="pointsTabCount">0</span>)
+        <button class="tab-btn active" data-tab="tabPoints" title="Реестр объектов и захоронений">
+          <i class="fa-solid fa-list-check"></i>
+          <span>Точки</span>
+          <span class="tab-badge" id="pointsTabCount">0</span>
         </button>
-        <button class="tab-btn" data-tab="tabChronology">
-          <i class="fa-solid fa-book-bookmark"></i> Хронология
+        <button class="tab-btn" data-tab="tabChronology" title="Хронология сражений 1941/1944 гг.">
+          <i class="fa-solid fa-book-bookmark"></i>
+          <span>Хроника</span>
         </button>
-        <button class="tab-btn" data-tab="tabSources">
-          <i class="fa-solid fa-box-archive"></i> Архивы
+        <button class="tab-btn" data-tab="tabSources" title="Архивные фонды ЦАМО, РГВА, NARA">
+          <i class="fa-solid fa-box-archive"></i>
+          <span>Архивы</span>
         </button>
-        <button class="tab-btn" data-tab="tabMemoirs">
-          <i class="fa-solid fa-quote-right"></i> Мемуары
+        <button class="tab-btn" data-tab="tabMemoirs" title="Воспоминания ветеранов и свидетельства">
+          <i class="fa-solid fa-quote-right"></i>
+          <span>Мемуары</span>
         </button>
-        <button class="tab-btn" data-tab="tabLayers">
-          <i class="fa-solid fa-layer-group"></i> Слои карт
+        <button class="tab-btn" data-tab="tabLayers" title="Управление картографическими слоями">
+          <i class="fa-solid fa-layer-group"></i>
+          <span>Слои</span>
         </button>
       </div>
 
@@ -211,31 +217,29 @@
         <div id="tabLayers" class="tab-pane">
           <div class="layers-manager">
             <div class="layer-section">
-              <h4><i class="fa-solid fa-globe"></i> Выбор базовой карты подложки</h4>
+              <h4><i class="fa-solid fa-globe"></i> Оригинальные базовые карты</h4>
               <div class="layer-option-group" id="baseMapOptions">
                 <!-- Base layers generated dynamically -->
               </div>
             </div>
 
             <div class="layer-section">
-              <h4><i class="fa-solid fa-map"></i> Наложение исторических карт и аэрофото</h4>
-              <div class="overlay-layers-list" id="overlayLayersOptions">
-                <!-- Overlay layers with opacity sliders -->
-              </div>
-            </div>
-
-            <div class="layer-section">
-              <h4><i class="fa-solid fa-draw-polygon"></i> Векторные рубежи боев</h4>
+              <h4><i class="fa-solid fa-draw-polygon"></i> Тактические рубежи и секторы NARA</h4>
               <div class="vector-layers-list">
                 <label class="checkbox-label">
                   <input type="checkbox" id="chkFrontlines1941" checked>
                   <span class="color-indicator" style="background:#e74c3c;"></span>
-                  Рубеж обороны 1941 г. (56 сд, 86 погранотряд)
+                  Рубежи обороны 1941 г. (56 сд, 86 ПО, 68 УР)
                 </label>
                 <label class="checkbox-label">
                   <input type="checkbox" id="chkFrontlines1944" checked>
                   <span class="color-indicator" style="background:#2ecc71;"></span>
-                  Наступление 1944 г. (31, 50 армии, 2 гв. кавкорпус)
+                  Рубежи наступления 1944 г. (31, 50 армии, 2 гв. кк)
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="chkNaraAerialFootprints" checked>
+                  <span class="color-indicator" style="background:#00e5ff;"></span>
+                  Секторы аэрофотосъемки NARA RG-373 (GX вылеты)
                 </label>
               </div>
             </div>
